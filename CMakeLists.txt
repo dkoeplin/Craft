@@ -2,7 +2,9 @@ cmake_minimum_required(VERSION 2.8)
 
 project(craft)
 
-FILE(GLOB SOURCE_FILES src/*.c)
+add_subdirectory(src)
+message("Outer scope: ")
+message("${SOURCE_FILES}")
 
 add_executable(
     craft
@@ -11,9 +13,26 @@ add_executable(
     deps/lodepng/lodepng.c
     deps/noise/noise.c
     deps/sqlite/sqlite3.c
-    deps/tinycthread/tinycthread.c)
+    deps/tinycthread/tinycthread.c
+)
 
-add_definitions(-std=c99 -O3)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_FLAGS "-fno-exceptions \
+  -fvisibility=hidden \
+  -fno-rtti \
+  -Werror \
+  -Wall \
+  -Wno-reorder \
+  -Wno-conversion \
+  -Wno-sign-conversion \
+  -Wno-sign-compare \
+  -Wno-unused-parameter \
+  -Wno-unused-function \
+  -Wno-unused-result	\
+  -Wno-unused-variable \
+  -Wno-strict-aliasing \
+  -Wno-unused-local-typedefs \
+")
 
 add_subdirectory(deps/glfw)
 include_directories(deps/glew/include)
@@ -22,6 +41,8 @@ include_directories(deps/lodepng)
 include_directories(deps/noise)
 include_directories(deps/sqlite)
 include_directories(deps/tinycthread)
+
+include_directories(src)
 
 if(MINGW)
     set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH}

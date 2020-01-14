@@ -1,0 +1,41 @@
+message("Setting source files")
+
+set(SOURCE_FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/craft/draw/Character.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/craft/draw/Crosshairs.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/craft/draw/cube.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/craft/draw/Item.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/craft/draw/Lines.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/craft/draw/Plant.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/craft/draw/Render.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/craft/draw/Sphere.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/craft/draw/Text.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/craft/draw/Triangles.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/craft/items/item.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/craft/interfaces/ChatInterface.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/craft/interfaces/DebugInterface.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/craft/interfaces/Interface.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/craft/interfaces/Keys.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/craft/interfaces/WorldInterface.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/craft/multiplayer/auth.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/craft/multiplayer/client.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/craft/physics/Physics.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/craft/player/Player.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/craft/session/Session.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/craft/session/Window.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/craft/session/WorldSession.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/craft/session/Worker.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/craft/support/db.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/craft/support/map.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/craft/support/matrix.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/craft/support/ring.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/craft/util/util.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/craft/world/Chunk.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/craft/world/Dimension.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/craft/world/Sign.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/craft/world/world.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+        PARENT_SCOPE
+)
+
+message("${SOURCE_FILES}")

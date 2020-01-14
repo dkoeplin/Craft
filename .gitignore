@@ -4,9 +4,6 @@ CMakeCache.txt
 CMakeFiles
 cmake_install.cmake
 config.py
-craft
-world
-env
 log.txt
 *.o
 *.db

@@ -13,11 +13,14 @@
 #include "craft/player/Player.h"
 #include "craft/session/Session.h"
 #include "craft/session/Window.h"
+#include "craft/util/Logging.h"
 #include "craft/world/world.h"
 
 WorldInterface::WorldInterface(Session *session, World *world, Player *player)
  : Interface(session), world(world), player(player) {
-
+    REQUIRE(player, "[WorldInterface] Player was null");
+    REQUIRE(world, "[WorldInterface] World was null");
+    REQUIRE(session, "[WorldInterface] Session was null");
 }
 
 bool WorldInterface::on_mouse_button(MouseButton button, MouseAction action, ButtonMods mods) {
@@ -61,7 +64,7 @@ bool WorldInterface::on_scroll(double dx, double dy) {
 bool WorldInterface::on_key_press(Key key, int scancode, ButtonMods mods) {
     bool control = mods.control() || mods.super();
     if (key == Key::Escape) {
-        session->window()->defocus();
+        window->defocus();
         return true;
     } else if (key == player->keys.Chat) {
         session->show_chat(/*cmd*/false);
@@ -153,9 +156,7 @@ bool WorldInterface::held_keys(double dt) {
         }
     }
     float speed = player->flying ? FLYING_SPEED : WALKING_SPEED;
-    int estimate = roundf(sqrtf(powf(vec.x * speed, 2) +
-                                        powf(vec.y * speed + ABS(player->accel.y) * 2, 2) +
-                                        powf(vec.z * speed, 2)) * dt * 8);
+    int estimate = roundf((vec * speed + player->accel.abs() * 2).len() * dt * 8);
     int step = MAX(8, estimate);
     float ut = dt / step;
     vec *= ut * speed;
@@ -201,9 +202,9 @@ void WorldInterface::on_middle_click() {
 }
 
 bool WorldInterface::render(bool top) {
-    int height = window_height();
-    int width = window_width();
-    int scale = window_scale();
+    int height = window->height();
+    int width = window->width();
+    int scale = window->scale();
     int ts = 0;
 
     // RENDER 3-D SCENE //
@@ -222,19 +223,18 @@ bool WorldInterface::render(bool top) {
 
     // RENDER HUD //
     if (SHOW_CROSSHAIRS) {
-        render_crosshairs(session->window(), Render::line());
+        render_crosshairs(window, Render::line());
     }
     if (SHOW_ITEM) {
         render_item(Render::block(), world, target);
     }
 
     if (SHOW_PLAYER_NAMES) {
-        if (observe1 != player) {
-            render_text(session->window(), Render::text(), Justify::Center, width / 2, ts, ts, observe1->name);
+        if (target != player) {
+            render_text(window, Render::text(), Justify::Center, width / 2, ts, ts, target->name);
         }
-        Player *other = world->closest_player_in_view(observe1);
-        if (other) {
-            render_text(session->window(), Render::text(), Justify::Center,
+        if (auto *other = world->closest_player_in_view(target)) {
+            render_text(window, Render::text(), Justify::Center,
                         width / 2, height / 2 - ts - 24, ts,
                         other->name);
         }
@@ -263,7 +263,7 @@ bool WorldInterface::render(bool top) {
         session->render_players(Render::block(), observe2, pw, ph);
         glClear(GL_DEPTH_BUFFER_BIT);
         if (SHOW_PLAYER_NAMES) {
-            render_text(session->window(), Render::text(), Justify::Center, pw / 2, ts, ts, observe2->name);
+            render_text(window, Render::text(), Justify::Center, pw / 2, ts, ts, observe2->name);
         }
     }
     return false;

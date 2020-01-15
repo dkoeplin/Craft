@@ -4,11 +4,13 @@
 
 #include "curl/curl.h"
 #include "GL/glew.h"
+#include "GLFW/glfw3.h"
 
 #include "craft/draw/cube.h"
 #include "craft/draw/Render.h"
 #include "craft/player/Player.h"
 #include "craft/interfaces/ChatInterface.h"
+#include "craft/interfaces/DebugInterface.h"
 #include "craft/interfaces/Interface.h"
 #include "craft/interfaces/WorldInterface.h"
 #include "craft/multiplayer/auth.h"
@@ -24,23 +26,46 @@
 #include "craft/util/Logging.h"
 #include "craft/util/util.h"
 
-bool Session::init() {
-    bool success = glfwInit();
-    current = new Session;
-    Render::load_textures();
-    Render::load_shaders();
+Session::Session() : WorldSession() {
+    window_ = std::make_unique<Window>();
 
+    for (int i = 0; i < WORKERS; i++) {
+        auto worker = std::make_unique<Worker>(this, i);
+        workers.push_back(std::move(worker));
+    }
+}
+
+void Session::run() {
     curl_global_init(CURL_GLOBAL_DEFAULT);
     srand(time(nullptr));
     rand();
 
-    return success;
+    REQUIRE(glfwInit(), "Unable to initialize GLFW.");
+
+    REQUIRE(window_->init(this), "Unable to initialize window.");
+    Render::load_textures();
+    Render::load_shaders();
+
+    Session::Mode mode = Session::Mode::Running;
+    while (mode != Session::Mode::Exiting) {
+        reconnect();
+        init_database();
+        load_world();
+
+        while (mode == Session::Mode::Running) {
+            tick();
+            mode = render();
+        }
+
+        unload_world();
+    }
+
+    terminate();
 }
 
-Session::Session() : WorldSession() {}
-
-bool Session::create_window() {
-    return window_->init();
+void Session::terminate() {
+    glfwTerminate();
+    curl_global_cleanup();
 }
 
 void Session::on_char(unsigned int u) {
@@ -129,18 +154,10 @@ void Session::held_keys(double dt) {
     }
 }
 
-
-void Session::init_workers() {
-    for (int i = 0; i < WORKERS; i++) {
-        auto worker = std::make_unique<Worker>(this, i);
-        workers.push_back(std::move(worker));
-    }
-}
-
 void Session::init_database() {
 #define USE_CACHE 1
     if (is_offline() || USE_CACHE) {
-        REQUIRE(db->init(db_path), "Unable to load database at " << std::string(db_path));
+        REQUIRE(!db->init(db_path), "Unable to load database at " << std::string(db_path));
         if (online) {
             // TODO: support proper caching of signs (handle deletions)
             db->delete_all_signs();
@@ -248,7 +265,8 @@ Session::Mode Session::render() {
 
     bool top = true;
     bool consumed = false;
-    for (auto interface = interfaces.rbegin(); !consumed && interface != interfaces.rend(); ++interface) {
+    // Render proceeds from back to front
+    for (auto interface = interfaces.begin(); !consumed && interface != interfaces.end(); ++interface) {
         consumed |= (*interface)->render(top);
         top = false;
     }
@@ -264,7 +282,7 @@ Session::Mode Session::render() {
     return Mode::Running;
 }
 
-void Session::shutdown() {
+void Session::unload_world() {
     State *state = &player->state;
     db->save_state(state->x, state->y, state->z, state->rx, state->ry);
     db->close();
@@ -281,6 +299,7 @@ void Session::load_world() {
 
     player = world->add_player(0);
     auto &state = player->state;
+    REQUIRE(player, "Failed to create player");
 
     // Load state from database
     bool loaded = db->load_state(&state.x, &state.y, &state.z, &state.rx, &state.ry);
@@ -291,9 +310,11 @@ void Session::load_world() {
 
     auto world_iface = std::make_unique<WorldInterface>(this, world.get(), player);
     auto chat_iface = std::make_unique<ChatInterface>(this, world.get());
+    auto debug_iface = std::make_unique<DebugInterface>(this, world.get(), player);
     chat = chat_iface.get();
     interfaces.push_back(std::move(world_iface));
     interfaces.push_back(std::move(chat_iface));
+    interfaces.push_back(std::move(debug_iface));
 }
 
 void Session::check_workers() {
@@ -340,6 +361,8 @@ void Session::create_chunk(Chunk *chunk, int p, int q) {
     WorkerItem item = {};
     item.p = chunk->p;
     item.q = chunk->q;
+    item.block_maps[1][1] = &chunk->map;
+    item.light_maps[1][1] = &chunk->lights;
     load_chunk(&item);
     request_chunk(p, q);
 }

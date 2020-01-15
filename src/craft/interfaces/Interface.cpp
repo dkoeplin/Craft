@@ -15,9 +15,11 @@
 
 #include "craft/world/world.h"
 
+Interface::Interface(Session *session) : session(session), window(session->window()) {}
+
 void Interface::render_item(Attrib *attrib, World *world, Player *player) {
     float matrix[16];
-    set_matrix_item(matrix, session->window()->width(), session->window()->height(), session->window()->scale());
+    set_matrix_item(matrix, window->width(), window->height(), window->scale());
     glUseProgram(attrib->program);
     glUniformMatrix4fv(attrib->matrix, 1, GL_FALSE, matrix);
     glUniform3f(attrib->camera, 0, 0, 5);
@@ -37,19 +39,7 @@ void Interface::render_item(Attrib *attrib, World *world, Player *player) {
 }
 
 bool Interface::is_key_pressed(const Key &key) {
-    return session->window()->is_key_pressed(key);
-}
-
-int Interface::window_width() {
-    return session->window()->width();
-}
-
-int Interface::window_height() {
-    return session->window()->height();
-}
-
-int Interface::window_scale() {
-    return session->window()->scale();
+    return window->is_key_pressed(key);
 }
 
 void Interface::close() {

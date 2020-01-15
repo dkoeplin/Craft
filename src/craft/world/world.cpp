@@ -31,7 +31,7 @@ void World::reset() {
 Player *World::add_player(int id) {
     auto player = std::make_unique<Player>(id);
     players.push_back(std::move(player));
-    return player.get();
+    return players.back().get();
 }
 
 Player *World::next_player(Player *p) {

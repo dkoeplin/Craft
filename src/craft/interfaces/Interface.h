@@ -6,6 +6,7 @@
 struct Attrib;
 struct Player;
 struct Session;
+struct Window;
 struct World;
 
 enum class MouseButton {
@@ -59,13 +60,12 @@ struct Interface {
   void close();
 
  protected:
-  bool is_key_pressed(const Key &key);
-  int window_width();
-  int window_height();
-  int window_scale();
+  explicit Interface(Session *session);
 
-  explicit Interface(Session *session) : session(session) {}
+  bool is_key_pressed(const Key &key);
+
   Session *session;
+  Window *window;
 };
 
 #endif //CRAFT_SRC_CRAFT_SESSION_INTERFACE_H_

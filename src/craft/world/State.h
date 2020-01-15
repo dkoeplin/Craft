@@ -3,6 +3,8 @@
 
 #include <cmath>
 
+#include "craft/util/util.h"
+
 template <typename Index> struct Vec {
     Vec() : x(0), y(0), z(0) {}
     Vec(Index x, Index y, Index z) : x(x), y(y), z(z) {}
@@ -72,6 +74,13 @@ template <typename Index> struct Vec {
         result.x = roundf(x);
         result.y = roundf(y);
         result.z = roundf(z);
+        return result;
+    }
+    Vec<Index> abs() const {
+        Vec<Index> result;
+        result.x = ABS(x);
+        result.y = ABS(y);
+        result.z = ABS(z);
         return result;
     }
 

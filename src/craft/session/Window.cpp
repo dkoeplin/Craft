@@ -1,28 +1,32 @@
 #include "Window.h"
 
-#include "GL/glew.h"
 #include "GLFW/glfw3.h"
+#include "GL/glew.h"
 
 #include "craft/interfaces/Keys.h"
 #include "craft/session/Session.h"
 #include "craft/util/util.h"
 
 void on_key(GLFWwindow *window, int key, int scancode, int action, int mods) {
-    return Session::current->on_key(key, scancode, action, mods);
+    auto *session = (Session *)glfwGetWindowUserPointer(window);
+    return session->on_key(key, scancode, action, mods);
 }
 void on_char(GLFWwindow *window, uint32_t u) {
-    return Session::current->on_char(u);
+    auto *session = (Session *)glfwGetWindowUserPointer(window);
+    return session->on_char(u);
 }
 void on_scroll(GLFWwindow *window, double xdelta, double ydelta) {
-    return Session::current->on_scroll(xdelta, ydelta);
+    auto *session = (Session *)glfwGetWindowUserPointer(window);
+    return session->on_scroll(xdelta, ydelta);
 }
 void on_mouse_button(GLFWwindow *window, int button, int action, int mods) {
-    return Session::current->on_mouse_button(button, action, mods);
+    auto *session = (Session *)glfwGetWindowUserPointer(window);
+    return session->on_mouse_button(button, action, mods);
 }
 
-Window::Window() { }
+Window::Window() = default;
 
-bool Window::init(void *arg) {
+bool Window::init(Session *session) {
     int window_width = WINDOW_WIDTH;
     int window_height = WINDOW_HEIGHT;
     GLFWmonitor *monitor = nullptr;
@@ -40,10 +44,14 @@ bool Window::init(void *arg) {
         return false;
     }
 
-    glfwSetWindowUserPointer(window_, arg);
     glfwMakeContextCurrent(window_);
     glfwSwapInterval(VSYNC);
     glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetWindowUserPointer(window_, this);
+    glfwSetKeyCallback(window_, ::on_key);
+    glfwSetCharCallback(window_, ::on_char);
+    glfwSetMouseButtonCallback(window_, ::on_mouse_button);
+    glfwSetScrollCallback(window_, ::on_scroll);
 
     if (glewInit() != GLEW_OK) {
         return false;
@@ -53,11 +61,6 @@ bool Window::init(void *arg) {
     glEnable(GL_DEPTH_TEST);
     glLogicOp(GL_INVERT);
     glClearColor(0, 0, 0, 1);
-
-    glfwSetKeyCallback(window_, ::on_key);
-    glfwSetCharCallback(window_, ::on_char);
-    glfwSetMouseButtonCallback(window_, ::on_mouse_button);
-    glfwSetScrollCallback(window_, ::on_scroll);
     return true;
 }
 
@@ -83,8 +86,7 @@ void Window::focus() {
 }
 
 void Window::defocus() {
-    bool exclusive = glfwGetInputMode(window_, GLFW_CURSOR) == GLFW_CURSOR_DISABLED;
-    if (exclusive) {
+    if (in_focus()) {
         glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     }
 }

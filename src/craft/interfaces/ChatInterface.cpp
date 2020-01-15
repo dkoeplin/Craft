@@ -55,7 +55,7 @@ bool ChatInterface::on_key_press(Key key, int scancode, ButtonMods mods) {
             session->talk(typing_buffer);
         }
     } else if (control && key == Key::V) {
-        const char *buffer = session->window()->clipboard();
+        const char *buffer = window->clipboard();
         session->suppress_char();
         strncat(typing_buffer, buffer, MAX_TEXT_LENGTH - strlen(typing_buffer) - 1);
     }
@@ -67,14 +67,14 @@ bool ChatInterface::held_keys(double dt) {
 }
 
 bool ChatInterface::render(bool top) {
-    float ts = 12 * window_scale();
+    float ts = 12 * window->scale();
     float tx = ts / 2;
-    float ty = window_height() - ts;
+    float ty = window->height() - ts;
 
     for (int i = 0; i < MAX_MESSAGES; i++) {
         int index = (message_index + i) % MAX_MESSAGES;
         if (strlen(messages[index])) {
-            render_text(session->window(), Render::text(), Justify::Left, tx, ty, ts, messages[index]);
+            render_text(window, Render::text(), Justify::Left, tx, ty, ts, messages[index]);
             ty -= ts * 2;
         }
     }
@@ -82,7 +82,7 @@ bool ChatInterface::render(bool top) {
     if (visible) {
         char text_buffer[1024];
         snprintf(text_buffer, 1024, "> %s", typing_buffer);
-        render_text(session->window(), Render::text(), Justify::Left, tx, ty, ts, text_buffer);
+        render_text(window, Render::text(), Justify::Left, tx, ty, ts, text_buffer);
     }
     return false;
 }

@@ -15,7 +15,6 @@ set(SOURCE_FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/craft/interfaces/ChatInterface.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/craft/interfaces/DebugInterface.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/craft/interfaces/Interface.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/craft/interfaces/Keys.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/craft/interfaces/WorldInterface.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/craft/multiplayer/auth.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/craft/multiplayer/client.cpp

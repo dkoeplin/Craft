@@ -1,13 +1,15 @@
 #ifndef CRAFT_SRC_CRAFT_SESSION_WINDOW_H_
 #define CRAFT_SRC_CRAFT_SESSION_WINDOW_H_
 
+#include "Session.h"
+
 typedef struct GLFWwindow GLFWwindow;
 struct Key;
 
 struct Window {
   Window();
 
-  bool init(void *arg);
+  bool init(Session *session);
 
   void update();
   void update_scale_factor();

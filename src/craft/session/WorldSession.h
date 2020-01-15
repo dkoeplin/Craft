@@ -3,10 +3,13 @@
 
 #include <memory>
 
+#include "craft/multiplayer/client.h"
+#include "craft/support/db.h"
+#include "craft/world/world.h"
+
 struct Block;
 struct Client;
 struct Database;
-struct World;
 
 struct WorldSession {
  public:

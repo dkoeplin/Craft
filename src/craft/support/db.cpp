@@ -255,10 +255,9 @@ void Database::save_state(float x, float y, float z, float rx, float ry) {
 }
 
 int Database::load_state(float *x, float *y, float *z, float *rx, float *ry) {
-    static const char *query =
-        "select x, y, z, rx, ry from state;";
+    static const char *query = "select x, y, z, rx, ry from state;";
     int result = 0;
-    sqlite3_stmt *stmt;
+    sqlite3_stmt *stmt = nullptr;
     sqlite3_prepare_v2(db, query, -1, &stmt, nullptr);
     if (sqlite3_step(stmt) == SQLITE_ROW) {
         *x = sqlite3_column_double(stmt, 0);

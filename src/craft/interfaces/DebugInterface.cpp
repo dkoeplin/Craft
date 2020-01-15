@@ -35,9 +35,9 @@ bool DebugInterface::tick(double dt) {
 
 bool DebugInterface::render(bool top) {
     char text_buffer[1024];
-    float ts = 12 * window_scale();
+    float ts = 12 * window->scale();
     float tx = ts / 2;
-    float ty = window_height() - ts;
+    float ty = window->height() - ts;
 
     State &s = player->state;
     int hour = world->time_of_day() * 24;
@@ -48,7 +48,7 @@ bool DebugInterface::render(bool top) {
              "(%d, %d) (%.2f, %.2f, %.2f) [%zu, %d, %d] %d%cm %dfps",
              chunked(s.x), chunked(s.z), s.x, s.y, s.z,
              world->player_count(), world->chunk_count(),
-             session->window()->face_count() * 2, hour, am_pm, fps);
-    render_text(session->window(), Render::text(), Justify::Left, tx, ty, ts, text_buffer);
+             window->face_count() * 2, hour, am_pm, fps);
+    render_text(window, Render::text(), Justify::Left, tx, ty, ts, text_buffer);
     return false;
 }

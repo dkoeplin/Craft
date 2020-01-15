@@ -58,7 +58,7 @@ void Client::login(const char *username, const char *identity_token) {
     send(buffer);
 }
 
-void Client::position(State &state) {
+void Client::position(State &state) { if (running) {
     static State prev;
     float distance =
         (prev.x - state.x) * (prev.x - state.x) +
@@ -73,42 +73,42 @@ void Client::position(State &state) {
     char buffer[1024];
     snprintf(buffer, 1024, "P,%.2f,%.2f,%.2f,%.2f,%.2f\n", state.x, state.y, state.z, state.rx, state.ry);
     send(buffer);
-}
+}}
 
-void Client::chunk(int p, int q, int key) {
+void Client::chunk(int p, int q, int key) { if (running) {
     char buffer[1024];
     snprintf(buffer, 1024, "C,%d,%d,%d\n", p, q, key);
     send(buffer);
-}
+}}
 
-void Client::block(int x, int y, int z, int w) {
+void Client::block(int x, int y, int z, int w) { if (running) {
     char buffer[1024];
     snprintf(buffer, 1024, "B,%d,%d,%d,%d\n", x, y, z, w);
     send(buffer);
-}
+}}
 
-void Client::light(int x, int y, int z, int w) {
+void Client::light(int x, int y, int z, int w) { if (running) {
     char buffer[1024];
     snprintf(buffer, 1024, "L,%d,%d,%d,%d\n", x, y, z, w);
     send(buffer);
-}
+}}
 
-void Client::sign(int x, int y, int z, int face, const char *text) {
+void Client::sign(int x, int y, int z, int face, const char *text) { if (running) {
     char buffer[1024];
     snprintf(buffer, 1024, "S,%d,%d,%d,%d,%s\n", x, y, z, face, text);
     send(buffer);
-}
+}}
 
-void Client::talk(const char *text) {
+void Client::talk(const char *text) { if (running) {
     if (strlen(text) == 0) {
         return;
     }
     char buffer[1024];
     snprintf(buffer, 1024, "T,%s\n", text);
     send(buffer);
-}
+}}
 
-char *Client::recv() {
+char *Client::recv() { if (running) {
     char *result = nullptr;
     mtx_lock(&mutex);
     char *p = queue + qsize - 1;
@@ -127,7 +127,7 @@ char *Client::recv() {
     }
     mtx_unlock(&mutex);
     return result;
-}
+} else return nullptr; }
 
 int recv_worker(void *arg) {
     char *data = (char *)malloc(sizeof(char) * RECV_SIZE);

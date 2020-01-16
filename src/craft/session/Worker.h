@@ -8,6 +8,7 @@ extern "C" {
 }
 
 #include "craft/support/map.h"
+#include "craft/world/Vec.h"
 
 struct Chunk;
 struct Player;
@@ -15,8 +16,7 @@ struct Session;
 struct World;
 
 struct WorkerItem {
-  int p;
-  int q;
+  ChunkPos pos;
   bool load; // Chunk requires loading
   Map *block_maps[3][3];
   Map *light_maps[3][3];
@@ -30,7 +30,7 @@ struct WorkerItem {
 
 struct Worker {
  public:
-  enum class State {
+  enum class Status {
     Idle = 0,
     Busy = 1,
     Done = 2
@@ -41,8 +41,8 @@ struct Worker {
 
   /// External acknowledge done and return to idle
   void ack();
-  bool is_done() { return state == State::Done; }
-  bool is_idle() { return state == State::Idle; }
+  bool is_done() { return state == Status::Done; }
+  bool is_idle() { return state == Status::Idle; }
 
   void lock() { mtx_lock(&mtx); }
   void unlock() { mtx_unlock(&mtx); }
@@ -53,7 +53,7 @@ struct Worker {
   friend int worker_run(void *arg);
 
   int index;
-  State state = State::Idle;
+  Status state = Status::Idle;
   thrd_t thrd;
   mtx_t mtx;
   cnd_t cnd;

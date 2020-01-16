@@ -3,7 +3,7 @@
 
 #include "craft/interfaces/Keys.h"
 
-struct Attrib;
+struct Shader;
 struct Player;
 struct Session;
 struct Window;
@@ -55,7 +55,7 @@ struct Interface {
   virtual bool tick(double dt) { return false; };
   virtual bool render(bool top) { return false; };
 
-  void render_item(Attrib *attrib, World *world, Player *player);
+  void render_item(Shader *attrib, World *world, Player *player);
 
   void close();
 

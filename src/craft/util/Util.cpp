@@ -6,7 +6,7 @@
 #include <string>
 
 #include "craft/util/Logging.h"
-#include "craft/util/util.h"
+#include "craft/util/Util.h"
 
 #define LODEPNG_NO_COMPILE_CPP
 extern "C" {

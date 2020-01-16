@@ -1,4 +1,4 @@
-#include "craft/world/world.h"
+#include "craft/world/World.h"
 
 #include "GL/glew.h"
 
@@ -11,11 +11,11 @@ extern "C" {
 #include "craft/draw/Triangles.h"
 #include "craft/support/matrix.h"
 
-#include "craft/items/item.h"
+#include "craft/items/Item.h"
 #include "craft/physics/Physics.h"
 #include "craft/player/Player.h"
 #include "craft/session/Worker.h"
-#include "craft/world/Attrib.h"
+#include "craft/draw/Shader.h"
 #include "craft/world/Chunk.h"
 #include "craft/world/Dimension.h"
 #include "craft/world/Sign.h"
@@ -123,35 +123,40 @@ float World::get_daylight() {
     }
 }
 
-int World::get_block(int x, int y, int z) {
-    int p = chunked(x);
-    int q = chunked(z);
-    Chunk *chunk = find_chunk(p, q);
-    if (chunk) {
+int World::get_block(const ILoc &pos) {
+    if (Chunk *chunk = find_chunk(pos.chunk())) {
         Map *map = &chunk->map;
-        return map_get(map, x, y, z);
+        return map_get(map, pos.x, pos.y, pos.z);
     }
     return 0;
 }
 
-Chunk *World::find_chunk(int p, int q) {
+Chunk *World::find_chunk(const ChunkPos &pos) {
     for (auto &chunk : chunks) {
-        if (chunk->p == p && chunk->q == q) {
+        if (chunk->pos == pos) {
             return chunk.get();
         }
     }
     return nullptr;
 }
 
+Chunk *World::force_chunk(const ChunkPos &pos) {
+    Chunk *chunk = find_chunk(pos);
+    if (!chunk && chunks.size() < MAX_CHUNKS) {
+        auto new_chunk = std::make_unique<Chunk>(pos);
+        chunk = new_chunk.get();
+        chunks.push_back(std::move(new_chunk));
+    }
+    return chunk;
+}
+
 void World::delete_all_chunks() { chunks.clear(); }
 
-int World::highest_block(float x, float z) {
+int World::highest_block(int nx, int nz) {
     int result = -1;
-    int nx = roundf(x);
-    int nz = roundf(z);
-    int p = chunked(x);
-    int q = chunked(z);
-    Chunk *chunk = find_chunk(p, q);
+    int p = chunked(nx);
+    int q = chunked(nz);
+    Chunk *chunk = find_chunk({p, q});
     if (chunk) {
         Map *map = &chunk->map;
         MAP_FOR_EACH(map, ex, ey, ez, ew) {
@@ -235,7 +240,7 @@ void create_world(int p, int q, world_func func, void *arg) {
 }
 
 
-int World::has_lights(Chunk *chunk) {
+int World::chunk_has_lights(Chunk *chunk) {
     if (!SHOW_LIGHTS) {
         return 0;
     }
@@ -243,7 +248,7 @@ int World::has_lights(Chunk *chunk) {
         for (int dq = -1; dq <= 1; dq++) {
             Chunk *other = chunk;
             if (dp || dq) {
-                other = find_chunk(chunk->p + dp, chunk->q + dq);
+                other = find_chunk({chunk->pos.x + dp, chunk->pos.z + dq});
             }
             if (!other) {
                 continue;
@@ -259,29 +264,24 @@ int World::has_lights(Chunk *chunk) {
 
 void World::mark_chunk_dirty(Chunk *chunk) {
     chunk->dirty = true;
-    if (has_lights(chunk)) {
-        for (int dp = -1; dp <= 1; dp++) {
-            for (int dq = -1; dq <= 1; dq++) {
-                Chunk *other = find_chunk(chunk->p + dp, chunk->q + dq);
-                if (other) {
-                    other->dirty = true;
-                }
-            }
-        }
+    if (chunk_has_lights(chunk)) {
+        chunk->pos.surrounding<1>([&](ChunkPos pos2){
+          if (Chunk *other = find_chunk(pos2)) {
+              other->dirty = true;
+          }
+        });
     }
 }
 
 
 //// Physics
-
 Block World::hit_test(const State &state, bool use_prev) {
     Block result;
     float best = 0;
-    int p = chunked(state.x);
-    int q = chunked(state.z);
+    auto cpos = state.chunk();
     Vec<float> v = get_sight_vector(state.rx, state.ry);
     for (auto &chunk : chunks) {
-        if (chunk_distance(chunk.get(), p, q) > 1) {
+        if (chunk_distance(chunk.get()->pos, cpos) > 1) {
             continue;
         }
         if (auto block = ::hit_test(&chunk->map, 8, use_prev, state, v)) {
@@ -302,19 +302,19 @@ BlockFace World::hit_test_face(const State &state) {
         Block b2 = hit_test(state, true);
         Vec<int> delta = b2 - b;
 
-        if (delta == LeftFace) {
+        if (delta == Left) {
             face = 0;
         }
-        if (delta == RightFace) {
+        if (delta == Right) {
             face = 1;
         }
-        if (delta == BackFace) {
+        if (delta == Back) {
             face = 2;
         }
-        if (delta == FrontFace) {
+        if (delta == Front) {
             face = 3;
         }
-        if (delta == TopFace) {
+        if (delta == Top) {
             int degrees = roundf(DEGREES(atan2f(state.x - b2.x, state.z - b2.z)));
             if (degrees < 0) {
                 degrees += 360;
@@ -328,44 +328,42 @@ BlockFace World::hit_test_face(const State &state) {
 }
 
 bool World::collide(int height, State &state) {
-    bool result = false;
-    int p = chunked(state.x);
-    int q = chunked(state.z);
-    Chunk *chunk = find_chunk(p, q);
-    if (!chunk) {
+    if (Chunk *chunk = find_chunk(state.chunk())) {
+        Map *map = &chunk->map;
+        int nx = roundf(state.x);
+        int ny = roundf(state.y);
+        int nz = roundf(state.z);
+        float px = state.x - nx;
+        float py = state.y - ny;
+        float pz = state.z - nz;
+        float pad = 0.25;
+
+        bool result = false;
+        for (int dy = 0; dy < height; dy++) {
+            if (px < -pad && is_obstacle(map_get(map, nx - 1, ny - dy, nz))) {
+                state.x = nx - pad;
+            }
+            if (px > pad && is_obstacle(map_get(map, nx + 1, ny - dy, nz))) {
+                state.x = nx + pad;
+            }
+            if (py < -pad && is_obstacle(map_get(map, nx, ny - dy - 1, nz))) {
+                state.y = ny - pad;
+                result = true;
+            }
+            if (py > pad && is_obstacle(map_get(map, nx, ny - dy + 1, nz))) {
+                state.y = ny + pad;
+                result = true;
+            }
+            if (pz < -pad && is_obstacle(map_get(map, nx, ny - dy, nz - 1))) {
+                state.z = nz - pad;
+            }
+            if (pz > pad && is_obstacle(map_get(map, nx, ny - dy, nz + 1))) {
+                state.z = nz + pad;
+            }
+        }
         return result;
     }
-    Map *map = &chunk->map;
-    int nx = roundf(state.x);
-    int ny = roundf(state.y);
-    int nz = roundf(state.z);
-    float px = state.x - nx;
-    float py = state.y - ny;
-    float pz = state.z - nz;
-    float pad = 0.25;
-    for (int dy = 0; dy < height; dy++) {
-        if (px < -pad && is_obstacle(map_get(map, nx - 1, ny - dy, nz))) {
-            state.x = nx - pad;
-        }
-        if (px > pad && is_obstacle(map_get(map, nx + 1, ny - dy, nz))) {
-            state.x = nx + pad;
-        }
-        if (py < -pad && is_obstacle(map_get(map, nx, ny - dy - 1, nz))) {
-            state.y = ny - pad;
-            result = true;
-        }
-        if (py > pad && is_obstacle(map_get(map, nx, ny - dy + 1, nz))) {
-            state.y = ny + pad;
-            result = true;
-        }
-        if (pz < -pad && is_obstacle(map_get(map, nx, ny - dy, nz - 1))) {
-            state.z = nz - pad;
-        }
-        if (pz > pad && is_obstacle(map_get(map, nx, ny - dy, nz + 1))) {
-            state.z = nz + pad;
-        }
-    }
-    return result;
+    return false;
 }
 
 Player *World::closest_player_in_view(Player *player) {
@@ -405,17 +403,9 @@ void World::delete_chunks(const std::vector<Player *> &observers) {
     chunks.erase(pend, chunks.end());
 }
 
-Chunk *World::force_chunk(int p, int q) {
-    Chunk *chunk = find_chunk(p, q);
-    if (!chunk && chunks.size() < MAX_CHUNKS) {
-        auto new_chunk = std::make_unique<Chunk>(p, q);
-        chunk = new_chunk.get();
-        chunks.push_back(std::move(new_chunk));
-    }
-    return chunk;
-}
 
-void World::render_players(Attrib *attrib, Player *player, int width, int height) {
+
+void World::render_players(Shader *attrib, Player *player, int width, int height) {
     State *s = &player->state;
     float matrix[16];
     set_matrix_3d(
@@ -435,20 +425,14 @@ void World::render_players(Attrib *attrib, Player *player, int width, int height
     }
 }
 
-int World::render_chunks(Attrib *attrib, Player *player, int width, int height) {
+int World::render_chunks(Shader *attrib, Player *player, int width, int height) {
     State *s = &player->state;
-    int p = chunked(s->x);
-    int q = chunked(s->z);
+    auto pos = s->chunk();
     float light = get_daylight();
-    float matrix[16];
-    set_matrix_3d(
-            matrix, width, height,
-            s->x, s->y, s->z, s->rx, s->ry,
-            player->fov, player->ortho, player->render_radius);
-    float planes[6][4];
-    frustum_planes(planes, player->render_radius, matrix);
+    auto matrix = Matrix::get3D(width, height, player, player->render_radius);
+    auto planes = Planes::frustum(player->render_radius, matrix);
     glUseProgram(attrib->program);
-    glUniformMatrix4fv(attrib->matrix, 1, GL_FALSE, matrix);
+    glUniformMatrix4fv(attrib->matrix, 1, GL_FALSE, matrix.data);
     glUniform3f(attrib->camera, s->x, s->y, s->z);
     glUniform1i(attrib->sampler, 0);
     glUniform1i(attrib->extra1, 2);
@@ -459,10 +443,10 @@ int World::render_chunks(Attrib *attrib, Player *player, int width, int height) 
 
     int total_faces = 0;
     for (auto &chunk : chunks) {
-        if (chunk_distance(chunk.get(), p, q) > player->render_radius) {
+        if (chunk_distance(chunk.get()->pos, pos) > player->render_radius) {
             continue;
         }
-        if (!chunk_visible(planes, chunk->p, chunk->q, chunk->miny, chunk->maxy, player->ortho)) {
+        if (!chunk->is_visible(planes, player->ortho)) {
             continue;
         }
         draw_chunk(attrib, chunk.get());
@@ -471,41 +455,33 @@ int World::render_chunks(Attrib *attrib, Player *player, int width, int height) 
     return total_faces;
 }
 
-void World::render_signs(Attrib *attrib, Player *player, int width, int height) {
+void World::render_signs(Shader *attrib, Player *player, int width, int height) {
     State *s = &player->state;
-    int p = chunked(s->x);
-    int q = chunked(s->z);
-    float matrix[16];
-    set_matrix_3d(matrix, width, height,
-                  s->x, s->y, s->z, s->rx, s->ry,
-                  player->fov, player->ortho, player->render_radius);
-
-    float planes[6][4];
-    frustum_planes(planes, player->render_radius, matrix);
+    auto pos = s->chunk();
+    auto matrix = Matrix::get3D(width, height, player, player->render_radius);
+    auto planes = Planes::frustum(player->render_radius, matrix);
     glUseProgram(attrib->program);
-    glUniformMatrix4fv(attrib->matrix, 1, GL_FALSE, matrix);
+    glUniformMatrix4fv(attrib->matrix, 1, GL_FALSE, matrix.data);
     glUniform1i(attrib->sampler, 3);
     glUniform1i(attrib->extra1, 1);
 
     for (auto &chunk : chunks) {
-        if (chunk_distance(chunk.get(), p, q) > player->sign_radius) {
+        if (chunk_distance(chunk.get()->pos, pos) > player->sign_radius) {
             continue;
         }
-        if (!chunk_visible(planes, chunk->p, chunk->q, chunk->miny, chunk->maxy, player->ortho)) {
+        if (!chunk->is_visible(planes, player->ortho)) {
             continue;
         }
         draw_signs(attrib, chunk.get());
     }
 }
 
-void World::render_sky(Attrib *attrib, Player *player, int width, int height) {
-    State *s = &player->state;
-    float matrix[16];
-    set_matrix_3d(
-            matrix, width, height,
-            0, 0, 0, s->rx, s->ry, player->fov, 0, player->render_radius);
+void World::render_sky(Shader *attrib, Player *player, int width, int height) {
+    State s = player->state;
+    s.set_pos({0, 0, 0});
+    auto matrix = Matrix::get3D(width, height, s, player->fov, false, player->render_radius);
     glUseProgram(attrib->program);
-    glUniformMatrix4fv(attrib->matrix, 1, GL_FALSE, matrix);
+    glUniformMatrix4fv(attrib->matrix, 1, GL_FALSE, matrix.data);
     glUniform1i(attrib->sampler, 2);
     glUniform1f(attrib->timer, time_of_day());
     draw_triangles_3d(attrib, dimension->sky, 512 * 3);

@@ -5,7 +5,7 @@
 
 #include "craft/interfaces/Keys.h"
 #include "craft/session/Session.h"
-#include "craft/util/util.h"
+#include "craft/util/Util.h"
 
 void on_key(GLFWwindow *window, int key, int scancode, int action, int mods) {
     auto *session = (Session *)glfwGetWindowUserPointer(window);

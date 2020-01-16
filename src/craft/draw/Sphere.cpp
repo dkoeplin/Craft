@@ -3,7 +3,7 @@
 #include <cmath>
 
 #include "craft/support/matrix.h"
-#include "craft/util/util.h"
+#include "craft/util/Util.h"
 
 int _make_sphere(
         float *data, float r, int detail,

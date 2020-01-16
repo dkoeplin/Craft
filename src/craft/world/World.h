@@ -8,11 +8,12 @@
 #include "craft/world/State.h"
 #include "craft/world/Chunk.h"
 
-struct Attrib;
+struct Shader;
 struct WorkerItem;
 
 struct World {
  public:
+  /// Players
   Player *find_player(int64_t id);
   Player *add_player(int id);
   Player *next_player(Player *p);
@@ -20,7 +21,6 @@ struct World {
   void delete_all_players();
   size_t player_count() { return players.size(); }
   void interpolate_players();
-
   void move_entities(double dt);
 
   // TODO: Dimension
@@ -30,17 +30,17 @@ struct World {
   float get_daylight();
 
   /// Chunks
-  Chunk *find_chunk(int p, int q);
-  Chunk *force_chunk(int p, int q);
+  Chunk *find_chunk(const ChunkPos &pos);
+  Chunk *force_chunk(const ChunkPos &pos);
   void delete_chunks(const std::vector<Player *> &observers);
   void delete_all_chunks();
-  int has_lights(Chunk *chunk);
+  int chunk_has_lights(Chunk *chunk);
   void mark_chunk_dirty(Chunk *chunk);
   int chunk_count() { return chunks.size(); }
 
   /// Blocks
-  int highest_block(float x, float z);
-  int get_block(int x, int y, int z);
+  int highest_block(int x, int z);
+  int get_block(const ILoc &pos);
 
   Player *closest_player_in_view(Player *player);
 
@@ -50,10 +50,10 @@ struct World {
   bool collide(int height, State &state);
 
   /// Rendering
-  void render_players(Attrib *attrib, Player *player, int width, int height);
-  int render_chunks(Attrib *attrib, Player *player, int width, int height);
-  void render_signs(Attrib *attrib, Player *player, int width, int height);
-  void render_sky(Attrib *attrib, Player *player, int width, int height);
+  void render_players(Shader *attrib, Player *player, int width, int height);
+  int render_chunks(Shader *attrib, Player *player, int width, int height);
+  void render_signs(Shader *attrib, Player *player, int width, int height);
+  void render_sky(Shader *attrib, Player *player, int width, int height);
 
   void reset();
 

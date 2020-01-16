@@ -3,21 +3,21 @@
 #include "GL/glew.h"
 
 #include "craft/player/Player.h"
-#include "craft/world/Attrib.h"
+#include "craft/draw/Shader.h"
 #include "craft/session/Session.h"
 #include "craft/session/Window.h"
 #include "craft/support/matrix.h"
-#include "craft/items/item.h"
+#include "craft/items/Item.h"
 
 #include "craft/draw/Plant.h"
-#include "craft/draw/cube.h"
-#include "craft/util/util.h"
+#include "craft/draw/Cube.h"
+#include "craft/util/Util.h"
 
-#include "craft/world/world.h"
+#include "craft/world/World.h"
 
 Interface::Interface(Session *session) : session(session), window(session->window()) {}
 
-void Interface::render_item(Attrib *attrib, World *world, Player *player) {
+void Interface::render_item(Shader *attrib, World *world, Player *player) {
     float matrix[16];
     set_matrix_item(matrix, window->width(), window->height(), window->scale());
     glUseProgram(attrib->program);

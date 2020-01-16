@@ -1,7 +1,7 @@
 #ifndef CRAFT_SRC_CRAFT_DRAW_RENDER_H_
 #define CRAFT_SRC_CRAFT_DRAW_RENDER_H_
 
-#include "craft/world/Attrib.h"
+#include "craft/draw/Shader.h"
 
 struct Chunk;
 struct Player;
@@ -15,16 +15,16 @@ struct Render {
   /// Shaders
   static void load_shaders();
 
-  static Attrib *block() { return &block_; }
-  static Attrib *line() { return &line_; }
-  static Attrib *text() { return &text_; }
-  static Attrib *sky() { return &sky_; }
+  static Shader *block() { return &block_; }
+  static Shader *line() { return &line_; }
+  static Shader *text() { return &text_; }
+  static Shader *sky() { return &sky_; }
 
  private:
-  static Attrib block_;
-  static Attrib line_;
-  static Attrib text_;
-  static Attrib sky_;
+  static Shader block_;
+  static Shader line_;
+  static Shader text_;
+  static Shader sky_;
 };
 
 #endif //CRAFT_SRC_CRAFT_DRAW_RENDER_H_

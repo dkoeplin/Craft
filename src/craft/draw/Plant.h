@@ -3,7 +3,7 @@
 
 #include "GL/glew.h"
 
-struct Attrib;
+struct Shader;
 
 void make_plant(
         float *data, float ao, float light,
@@ -11,6 +11,6 @@ void make_plant(
 
 GLuint gen_plant_buffer(float x, float y, float z, float n, int w);
 
-void draw_plant(Attrib *attrib, GLuint buffer);
+void draw_plant(Shader *attrib, GLuint buffer);
 
 #endif //CRAFT_SRC_CRAFT_DRAW_PLANT_H_

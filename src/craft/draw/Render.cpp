@@ -5,12 +5,12 @@
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
 
-#include "craft/util/util.h"
+#include "craft/util/Util.h"
 
-Attrib Render::block_ = {};
-Attrib Render::line_ = {};
-Attrib Render::text_ = {};
-Attrib Render::sky_ = {};
+Shader Render::block_ = {};
+Shader Render::line_ = {};
+Shader Render::text_ = {};
+Shader Render::sky_ = {};
 
 void Render::init() {
     load_textures();

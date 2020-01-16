@@ -1,7 +1,7 @@
-#include <cmath>
-#include "config.h"
 #include "craft/support/matrix.h"
-#include "craft/util/util.h"
+
+#include <cmath>
+#include "craft/util/Util.h"
 
 void normalize(float *x, float *y, float *z) {
     float d = sqrtf((*x) * (*x) + (*y) * (*y) + (*z) * (*z));

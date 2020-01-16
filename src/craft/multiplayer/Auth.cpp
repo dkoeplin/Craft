@@ -1,4 +1,4 @@
-#include "auth.h"
+#include "Auth.h"
 
 #include <curl/curl.h>
 #include <cstdio>

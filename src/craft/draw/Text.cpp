@@ -8,8 +8,8 @@
 #include "craft/draw/Triangles.h"
 #include "craft/session/Window.h"
 #include "craft/support/matrix.h"
-#include "craft/util/util.h"
-#include "craft/world/Attrib.h"
+#include "craft/util/Util.h"
+#include "craft/draw/Shader.h"
 
 GLuint gen_text_buffer(float x, float y, float n, char *text) {
     int length = strlen(text);
@@ -21,14 +21,14 @@ GLuint gen_text_buffer(float x, float y, float n, char *text) {
     return gen_faces(4, length, data);
 }
 
-void draw_text(Attrib *attrib, GLuint buffer, int length) {
+void draw_text(Shader *attrib, GLuint buffer, int length) {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     draw_triangles_2d(attrib, buffer, length * 6);
     glDisable(GL_BLEND);
 }
 
-void render_text(Window *window, Attrib *attrib, Justify justify, float x, float y, float n, char *text) {
+void render_text(Window *window, Shader *attrib, Justify justify, float x, float y, float n, char *text) {
     float matrix[16];
     set_matrix_2d(matrix, window->width(), window->height());
     glUseProgram(attrib->program);

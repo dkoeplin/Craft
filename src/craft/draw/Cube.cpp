@@ -1,4 +1,4 @@
-#include "cube.h"
+#include "Cube.h"
 
 #include <cmath>
 
@@ -6,12 +6,12 @@
 
 #include "craft/draw/Lines.h"
 #include "craft/draw/Item.h"
-#include "craft/items/item.h"
+#include "craft/items/Item.h"
 #include "craft/player/Player.h"
 #include "craft/support/matrix.h"
-#include "craft/util/util.h"
-#include "craft/world/Attrib.h"
-#include "craft/world/world.h"
+#include "craft/util/Util.h"
+#include "craft/draw/Shader.h"
+#include "craft/world/World.h"
 
 void make_cube_faces(
     float *data, float ao[6][4], float light[6][4],
@@ -151,11 +151,11 @@ GLuint gen_wireframe_buffer(float x, float y, float z, float n) {
     return gen_buffer(sizeof(data), data);
 }
 
-void draw_cube(Attrib *attrib, GLuint buffer) {
+void draw_cube(Shader *attrib, GLuint buffer) {
     draw_item(attrib, buffer, 36);
 }
 
-void render_wireframe(World *world, Attrib *attrib, Player *p, int w, int h) {
+void render_wireframe(World *world, Shader *attrib, Player *p, int w, int h) {
     State *s = &p->state;
     float matrix[16];
     set_matrix_3d(

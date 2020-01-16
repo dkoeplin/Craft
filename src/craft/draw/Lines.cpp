@@ -2,9 +2,9 @@
 
 #include "GL/glew.h"
 
-#include "craft/world/Attrib.h"
+#include "craft/draw/Shader.h"
 
-void draw_lines(Attrib *attrib, GLuint buffer, int components, int count) {
+void draw_lines(Shader *attrib, GLuint buffer, int components, int count) {
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
     glEnableVertexAttribArray(attrib->position);
     glVertexAttribPointer(

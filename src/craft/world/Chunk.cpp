@@ -4,20 +4,20 @@ extern "C" {
 #include "noise.h"
 }
 
-#include "craft/draw/cube.h"
+#include "craft/draw/Cube.h"
 #include "craft/draw/Plant.h"
 #include "craft/draw/Triangles.h"
-#include "craft/items/item.h"
+#include "craft/items/Item.h"
 #include "craft/physics/Physics.h"
 #include "craft/player/Player.h"
 #include "craft/session/Worker.h"
-#include "craft/world/Attrib.h"
-#include "craft/world/world.h"
+#include "craft/draw/Shader.h"
+#include "craft/world/World.h"
 
-Chunk::Chunk(int p, int q) : p(p), q(q), map{}, lights{} {
-    int dx = p * CHUNK_SIZE - 1;
+Chunk::Chunk(ChunkPos pos) : pos(pos), map{}, lights{} {
+    int dx = pos.x * CHUNK_SIZE - 1;
     int dy = 0;
-    int dz = q * CHUNK_SIZE - 1;
+    int dz = pos.z * CHUNK_SIZE - 1;
     map_alloc(&map, dx, dy, dz, 0x7fff);
     map_alloc(&lights, dx, dy, dz, 0xf);
 }
@@ -29,8 +29,48 @@ Chunk::~Chunk() {
     del_buffer(sign_buffer);
 }
 
+bool chunk_visible(Planes &planes, ChunkPos pos, int miny, int maxy, bool ortho) {
+    int x = pos.x * CHUNK_SIZE - 1;
+    int z = pos.z * CHUNK_SIZE - 1;
+    int d = CHUNK_SIZE + 1;
+    int points[8][3] = {
+            {x + 0, miny, z + 0},
+            {x + d, miny, z + 0},
+            {x + 0, miny, z + d},
+            {x + d, miny, z + d},
+            {x + 0, maxy, z + 0},
+            {x + d, maxy, z + 0},
+            {x + 0, maxy, z + d},
+            {x + d, maxy, z + d}
+    };
+    int n = ortho ? 4 : 6;
+    for (int i = 0; i < n; i++) {
+        int in = 0;
+        int out = 0;
+        for (int j = 0; j < 8; j++) {
+            float d = planes(i, 0) * points[j][0] +
+                      planes(i, 1) * points[j][1] +
+                      planes(i, 2) * points[j][2] +
+                      planes(i, 3);
+            if (d < 0) {
+                out++;
+            }
+            else {
+                in++;
+            }
+            if (in && out) {
+                break;
+            }
+        }
+        if (in == 0) {
+            return false;
+        }
+    }
+    return true;
+}
 
-void draw_chunk(Attrib *attrib, Chunk *chunk) {
+
+void draw_chunk(Shader *attrib, Chunk *chunk) {
     draw_triangles_3d_ao(attrib, chunk->buffer, chunk->faces * 6);
 }
 
@@ -39,9 +79,9 @@ void compute_chunk(WorkerItem *item) {
     char *light = (char *)calloc(XZ_SIZE * XZ_SIZE * Y_SIZE, sizeof(char));
     char *highest = (char *)calloc(XZ_SIZE * XZ_SIZE, sizeof(char));
 
-    int ox = item->p * CHUNK_SIZE - CHUNK_SIZE - 1;
+    int ox = item->pos.x * CHUNK_SIZE - CHUNK_SIZE - 1;
     int oy = -1;
-    int oz = item->q * CHUNK_SIZE - CHUNK_SIZE - 1;
+    int oz = item->pos.z * CHUNK_SIZE - CHUNK_SIZE - 1;
 
     // check for lights
     int has_light = 0;
@@ -222,13 +262,12 @@ void generate_chunk(Chunk *chunk, WorkerItem *item) {
 
 WorkerItem create_chunk_work_item(World *world, Chunk *chunk) {
     WorkerItem item = {};
-    item.p = chunk->p;
-    item.q = chunk->q;
+    item.pos = chunk->pos;
     for (int dp = -1; dp <= 1; dp++) {
         for (int dq = -1; dq <= 1; dq++) {
             Chunk *other = chunk;
             if (dp || dq) {
-                other = world->find_chunk(chunk->p + dp, chunk->q + dq);
+                other = world->find_chunk({chunk->pos.x + dp, chunk->pos.z + dq});
             }
             if (other) {
                 item.block_maps[dp + 1][dq + 1] = &other->map;

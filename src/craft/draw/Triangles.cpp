@@ -1,8 +1,8 @@
 #include "Triangles.h"
 
-#include "craft/world/Attrib.h"
+#include "craft/draw/Shader.h"
 
-void draw_triangles_3d_ao(Attrib *attrib, GLuint buffer, int count) {
+void draw_triangles_3d_ao(Shader *attrib, GLuint buffer, int count) {
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
     glEnableVertexAttribArray(attrib->position);
     glEnableVertexAttribArray(attrib->normal);
@@ -20,7 +20,7 @@ void draw_triangles_3d_ao(Attrib *attrib, GLuint buffer, int count) {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void draw_triangles_3d_text(Attrib *attrib, GLuint buffer, int count) {
+void draw_triangles_3d_text(Shader *attrib, GLuint buffer, int count) {
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
     glEnableVertexAttribArray(attrib->position);
     glEnableVertexAttribArray(attrib->uv);
@@ -34,7 +34,7 @@ void draw_triangles_3d_text(Attrib *attrib, GLuint buffer, int count) {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void draw_triangles_3d(Attrib *attrib, GLuint buffer, int count) {
+void draw_triangles_3d(Shader *attrib, GLuint buffer, int count) {
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
     glEnableVertexAttribArray(attrib->position);
     glEnableVertexAttribArray(attrib->normal);
@@ -52,7 +52,7 @@ void draw_triangles_3d(Attrib *attrib, GLuint buffer, int count) {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void draw_triangles_2d(Attrib *attrib, GLuint buffer, int count) {
+void draw_triangles_2d(Shader *attrib, GLuint buffer, int count) {
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
     glEnableVertexAttribArray(attrib->position);
     glEnableVertexAttribArray(attrib->uv);

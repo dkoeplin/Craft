@@ -7,7 +7,7 @@
 #include "craft/player/Player.h"
 #include "craft/session/Session.h"
 #include "craft/session/Window.h"
-#include "craft/world/world.h"
+#include "craft/world/World.h"
 
 DebugInterface::DebugInterface(Session *session, World *world, Player *player)
 : Interface(session), world(world), player(player) {}

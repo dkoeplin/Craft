@@ -4,26 +4,33 @@
 #include <cmath>
 
 #include "craft/support/map.h"
+#include "craft/support/matrix.h"
+#include "craft/world/Vec.h"
 #include "craft/world/Sign.h"
 
 #define MAX_CHUNKS 8192
 #define CHUNK_SIZE 32
 
 typedef unsigned int GLuint;
-struct Attrib;
+struct Shader;
 struct Chunk;
 struct WorkerItem;
 struct World;
 
+bool chunk_visible(Planes &planes, ChunkPos pos, int miny, int maxy, bool ortho);
+
 struct Chunk {
+  explicit Chunk(ChunkPos pos);
   ~Chunk();
-  Chunk(int p, int q);
+
+  bool is_visible(Planes &planes, bool ortho) {
+      return chunk_visible(planes, pos, miny, maxy, ortho);
+  }
 
   Map map;
   Map lights;
   std::vector<Sign> signs;
-  int p;
-  int q;
+  ChunkPos pos;
   int faces = 0;
   int sign_faces = 0;
   bool dirty = true;
@@ -43,6 +50,6 @@ void compute_chunk(WorkerItem *item);
 
 void generate_chunk(Chunk *chunk, WorkerItem *item);
 
-void draw_chunk(Attrib *attrib, Chunk *chunk);
+void draw_chunk(Shader *attrib, Chunk *chunk);
 
 #endif //CRAFT_SRC_CRAFT_WORLD_CHUNK_H_

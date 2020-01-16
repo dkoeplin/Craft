@@ -3,10 +3,10 @@
 #include "GL/glew.h"
 
 #include "craft/draw/Item.h"
-#include "craft/items/item.h"
+#include "craft/items/Item.h"
 #include "craft/support/matrix.h"
-#include "craft/util/util.h"
-#include "craft/world/Attrib.h"
+#include "craft/util/Util.h"
+#include "craft/draw/Shader.h"
 
 void make_plant(
         float *data, float ao, float light,
@@ -76,6 +76,6 @@ GLuint gen_plant_buffer(float x, float y, float z, float n, int w) {
     return gen_faces(10, 4, data);
 }
 
-void draw_plant(Attrib *attrib, GLuint buffer) {
+void draw_plant(Shader *attrib, GLuint buffer) {
     draw_item(attrib, buffer, 24);
 }

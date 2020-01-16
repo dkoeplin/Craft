@@ -6,23 +6,19 @@
 
 #include "craft/draw/Character.h"
 #include "craft/draw/Triangles.h"
-#include "craft/util/util.h"
-#include "craft/world/Attrib.h"
+#include "craft/util/Util.h"
+#include "craft/draw/Shader.h"
 #include "craft/world/Chunk.h"
 
-int sign_list_remove(std::vector<Sign> &list, int x, int y, int z, int face) {
+int sign_list_remove(std::vector<Sign> &list, const Face &face) {
     auto begin = list.begin();
-    auto pend = std::remove_if(begin, list.end(), [&](Sign &sign){
-      return sign.x == x && sign.y == y && sign.z == z && sign.face == face;
-    });
+    auto pend = std::remove_if(begin, list.end(), [&](Sign &sign){ return sign == face; });
     return pend - begin;
 }
 
-int sign_list_remove_all(std::vector<Sign> &list, int x, int y, int z) {
+int sign_list_remove_all(std::vector<Sign> &list, const ILoc &pos) {
     auto begin = list.begin();
-    auto pend = std::remove_if(begin, list.end(), [&](Sign &sign){
-        return sign.x == x && sign.y == y && sign.z == z;
-    });
+    auto pend = std::remove_if(begin, list.end(), [&](Sign &sign){ return sign == pos; });
     return pend - begin;
 }
 
@@ -47,7 +43,7 @@ int _gen_sign_buffer(GLfloat *data, float x, float y, float z, int face, const c
     int ldx = line_dx[face];
     int ldy = line_dy[face];
     int ldz = line_dz[face];
-    float n = 1.0 / (max_width / 10);
+    float n = 1.0f / (max_width / 10);
     float sx = x - n * (rows - 1) * (line_height / 2) * ldx;
     float sy = y - n * (rows - 1) * (line_height / 2) * ldy;
     float sz = z - n * (rows - 1) * (line_height / 2) * ldz;
@@ -101,8 +97,7 @@ void gen_sign_buffer(Chunk *chunk) {
     GLfloat *data = malloc_faces(5, max_faces);
     int faces = 0;
     for (auto &sign : signs) {
-        faces += _gen_sign_buffer(
-                data + faces * 30, sign.x, sign.y, sign.z, sign.face, sign.text);
+        faces += _gen_sign_buffer(data + faces * 30, sign.x, sign.y, sign.z, sign.face, sign.text);
     }
 
     del_buffer(chunk->sign_buffer);
@@ -110,14 +105,14 @@ void gen_sign_buffer(Chunk *chunk) {
     chunk->sign_faces = faces;
 }
 
-void draw_signs(Attrib *attrib, Chunk *chunk) {
+void draw_signs(Shader *attrib, Chunk *chunk) {
     glEnable(GL_POLYGON_OFFSET_FILL);
     glPolygonOffset(-8, -1024);
     draw_triangles_3d_text(attrib, chunk->sign_buffer, chunk->sign_faces * 6);
     glDisable(GL_POLYGON_OFFSET_FILL);
 }
 
-void draw_sign(Attrib *attrib, GLuint buffer, int length) {
+void draw_sign(Shader *attrib, GLuint buffer, int length) {
     glEnable(GL_POLYGON_OFFSET_FILL);
     glPolygonOffset(-8, -1024);
     draw_triangles_3d_text(attrib, buffer, length * 6);

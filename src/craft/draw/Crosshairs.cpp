@@ -5,8 +5,8 @@
 #include "craft/draw/Lines.h"
 #include "craft/session/Window.h"
 #include "craft/support/matrix.h"
-#include "craft/util/util.h"
-#include "craft/world/Attrib.h"
+#include "craft/util/Util.h"
+#include "craft/draw/Shader.h"
 
 GLuint gen_crosshair_buffer(Window *window) {
     float x = window->width() / 2;
@@ -19,7 +19,7 @@ GLuint gen_crosshair_buffer(Window *window) {
     return gen_buffer(sizeof(data), data);
 }
 
-void render_crosshairs(Window *window, Attrib *attrib) {
+void render_crosshairs(Window *window, Shader *attrib) {
     float matrix[16];
     set_matrix_2d(matrix, window->width(), window->height());
     glUseProgram(attrib->program);

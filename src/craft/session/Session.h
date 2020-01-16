@@ -9,7 +9,7 @@
 #include "craft/session/WorldSession.h"
 #include "craft/world/State.h"
 
-struct Attrib;
+struct Shader;
 struct ChatInterface;
 struct Client;
 struct Chunk;
@@ -70,18 +70,18 @@ struct Session : public WorldSession {
   void gen_chunk_buffer(Chunk *chunk);
   void init_chunk(Chunk *chunk);
   void load_chunk(WorkerItem *item);
-  void force_chunks(Player *p, int radius = 1);
+  void force_chunks(Player *p);
   void ensure_chunks(Player *p);
-  void request_chunk(int p, int q);
-  void create_chunk(Chunk *chunk, int p, int q);
+  void request_chunk(const ChunkPos &pos);
+  void create_chunk(Chunk *chunk);
 
   /// Rendering
   void check_workers();
-  void render_signs(Attrib *attrib, Player *p, int w, int h);
-  void render_players(Attrib *attrib, Player *p, int w, int h);
-  void render_chunks(Attrib *attrib, Player *p, int w, int h);
-  void render_sky(Attrib *attrib, Player *p, int w, int h);
-  void render_wireframe(Attrib *attrib, Player *p, int w, int h);
+  void render_signs(Shader *attrib, Player *p, int w, int h);
+  void render_players(Shader *attrib, Player *p, int w, int h);
+  void render_chunks(Shader *attrib, Player *p, int w, int h);
+  void render_sky(Shader *attrib, Player *p, int w, int h);
+  void render_wireframe(Shader *attrib, Player *p, int w, int h);
 
  private:
   enum class Mode { Running, Changed, Exiting };

@@ -3,7 +3,7 @@
 
 #include "GL/glew.h"
 
-struct Attrib {
+struct Shader {
   GLuint program;
   GLuint position;
   GLuint normal;

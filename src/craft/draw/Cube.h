@@ -3,7 +3,7 @@
 
 #include "GL/glew.h"
 
-struct Attrib;
+struct Shader;
 struct Player;
 struct World;
 
@@ -24,8 +24,8 @@ GLuint gen_wireframe_buffer(float x, float y, float z, float n);
 
 void make_cube_wireframe(float *data, float x, float y, float z, float n);
 
-void draw_cube(Attrib *attrib, GLuint buffer);
+void draw_cube(Shader *attrib, GLuint buffer);
 
-void render_wireframe(World *world, Attrib *attrib, Player *p, int w, int h);
+void render_wireframe(World *world, Shader *attrib, Player *p, int w, int h);
 
 #endif

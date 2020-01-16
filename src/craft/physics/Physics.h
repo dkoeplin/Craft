@@ -17,10 +17,6 @@ struct Map;
 #define XYZ(x, y, z) ((y) * XZ_SIZE * XZ_SIZE + (x) * XZ_SIZE + (z))
 #define XZ(x, z) ((x) * XZ_SIZE + (z))
 
-int chunk_distance(Chunk *chunk, int p, int q);
-
-int chunk_visible(float planes[6][4], int p, int q, int miny, int maxy, bool ortho);
-
 void occlusion(char neighbors[27], char lights[27], float shades[27],
                float ao[6][4], float light[6][4]);
 

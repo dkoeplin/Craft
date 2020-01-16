@@ -8,13 +8,13 @@
 #include "craft/draw/Crosshairs.h"
 #include "craft/draw/Render.h"
 #include "craft/draw/Text.h"
-#include "craft/items/item.h"
+#include "craft/items/Item.h"
 #include "craft/physics/Physics.h"
 #include "craft/player/Player.h"
 #include "craft/session/Session.h"
 #include "craft/session/Window.h"
 #include "craft/util/Logging.h"
-#include "craft/world/world.h"
+#include "craft/world/World.h"
 
 WorldInterface::WorldInterface(Session *session, World *world, Player *player)
  : Interface(session), world(world), player(player) {
@@ -202,10 +202,10 @@ void WorldInterface::on_middle_click() {
 }
 
 bool WorldInterface::render(bool top) {
-    int height = window->height();
-    int width = window->width();
-    int scale = window->scale();
-    int ts = 0;
+    float height = window->height();
+    float width = window->width();
+    float scale = window->scale();
+    float ts = 0.0f;
 
     // RENDER 3-D SCENE //
     Player *target = observe1 ? observe1 : player;
@@ -242,8 +242,8 @@ bool WorldInterface::render(bool top) {
 
     // RENDER PICTURE IN PICTURE //
     if (observe2 && observe2 != player) {
-        int pw = 256 * scale;
-        int ph = 256 * scale;
+        float pw = 256 * scale;
+        float ph = 256 * scale;
         int offset = 32 * scale;
         int pad = 3 * scale;
         int sw = pw + pad * 2;

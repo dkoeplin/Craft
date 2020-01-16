@@ -2,10 +2,10 @@
 #define CRAFT_SRC_CRAFT_PLAYER_PLAYER_H_
 
 #include "craft/player/KeyBindings.h"
-#include "craft/util/util.h"
+#include "craft/util/Util.h"
 #include "craft/world/State.h"
 
-struct Attrib;
+struct Shader;
 
 #define MAX_NAME_LENGTH 32
 
@@ -52,6 +52,6 @@ GLuint gen_player_buffer(const State &state);
 
 void make_player(float *data, float x, float y, float z, float rx, float ry);
 
-void draw_player(Attrib *attrib, Player *player);
+void draw_player(Shader *attrib, Player *player);
 
 #endif //CRAFT_SRC_CRAFT_PLAYER_PLAYER_H_

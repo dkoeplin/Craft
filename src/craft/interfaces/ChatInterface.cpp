@@ -5,7 +5,7 @@
 #include "craft/session/Window.h"
 #include "craft/draw/Render.h"
 #include "craft/draw/Text.h"
-#include "craft/world/world.h"
+#include "craft/world/World.h"
 
 ChatInterface::ChatInterface(Session *session, World *world)
  : Interface(session), world(world), typing_buffer{0}, messages{{0}} {

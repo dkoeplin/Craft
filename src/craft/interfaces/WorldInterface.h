@@ -2,7 +2,7 @@
 #define CRAFT_SRC_CRAFT_SESSION_PLAYERINTERFACE_H_
 
 #include "craft/interfaces/Interface.h"
-#include "craft/world/Attrib.h"
+#include "craft/draw/Shader.h"
 #include "craft/world/State.h"
 
 /// Controls

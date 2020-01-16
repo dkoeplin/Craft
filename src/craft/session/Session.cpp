@@ -6,25 +6,25 @@
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
 
-#include "craft/draw/cube.h"
+#include "craft/draw/Cube.h"
 #include "craft/draw/Render.h"
 #include "craft/player/Player.h"
 #include "craft/interfaces/ChatInterface.h"
 #include "craft/interfaces/DebugInterface.h"
 #include "craft/interfaces/Interface.h"
 #include "craft/interfaces/WorldInterface.h"
-#include "craft/multiplayer/auth.h"
-#include "craft/multiplayer/client.h"
+#include "craft/multiplayer/Auth.h"
+#include "craft/multiplayer/Client.h"
 #include "craft/physics/Physics.h"
 #include "craft/session/Window.h"
 #include "craft/session/Worker.h"
 #include "craft/support/db.h"
-#include "craft/world/Attrib.h"
+#include "craft/draw/Shader.h"
 #include "craft/world/Chunk.h"
 #include "craft/world/State.h"
-#include "craft/world/world.h"
+#include "craft/world/World.h"
 #include "craft/util/Logging.h"
-#include "craft/util/util.h"
+#include "craft/util/Util.h"
 
 Session::Session() : WorldSession() {
     window_ = std::make_unique<Window>();
@@ -283,8 +283,7 @@ Session::Mode Session::render() {
 }
 
 void Session::unload_world() {
-    State *state = &player->state;
-    db->save_state(state->x, state->y, state->z, state->rx, state->ry);
+    db->save_state(player->state);
     db->close();
     client->stop();
     world->delete_all_chunks();
@@ -302,10 +301,10 @@ void Session::load_world() {
     REQUIRE(player, "Failed to create player");
 
     // Load state from database
-    bool loaded = db->load_state(&state.x, &state.y, &state.z, &state.rx, &state.ry);
+    bool loaded = db->load_state(player->state);
     force_chunks(player);
     if (!loaded) {
-        state.y = world->highest_block(state.x, state.z) + 2;
+        player->state.y = world->highest_block(state.x, state.z) + 2;
     }
 
     auto world_iface = std::make_unique<WorldInterface>(this, world.get(), player);
@@ -322,7 +321,7 @@ void Session::check_workers() {
         worker->lock();
         if (worker->is_done()) {
             if (auto *chunk = worker->update_chunk(world.get())) {
-                request_chunk(chunk->p, chunk->q);
+                request_chunk(chunk->pos);
             }
         }
         worker->unlock();
@@ -339,48 +338,43 @@ void Session::gen_chunk_buffer(Chunk *chunk) {
 void Session::load_chunk(WorkerItem *item) {
     Map *block_map = item->block_maps[1][1];
     Map *light_map = item->light_maps[1][1];
-    create_world(item->p, item->q, map_set_func, block_map);
-    db->load_blocks(block_map, item->p, item->q);
-    db->load_lights(light_map, item->p, item->q);
+    create_world(item->pos, map_set_func, block_map);
+    db->load_blocks(block_map, item->pos);
+    db->load_lights(light_map, item->pos);
 }
 
-void Session::request_chunk(int p, int q) {
-    int key = db->get_key(p, q);
-    client->chunk(p, q, key);
+void Session::request_chunk(const ChunkPos &pos) {
+    int key = db->get_key(pos);
+    client->chunk(pos, key);
 }
 
 void Session::init_chunk(Chunk *chunk) {
     world->mark_chunk_dirty(chunk);
-    db->load_signs(chunk->signs, chunk->p, chunk->q);
+    db->load_signs(chunk->signs, chunk->pos);
 }
 
-void Session::create_chunk(Chunk *chunk, int p, int q) {
+void Session::create_chunk(Chunk *chunk) {
     chunk->unloaded = false;
     init_chunk(chunk);
 
     WorkerItem item = {};
-    item.p = chunk->p;
-    item.q = chunk->q;
+    item.pos = chunk->pos;
     item.block_maps[1][1] = &chunk->map;
     item.light_maps[1][1] = &chunk->lights;
     load_chunk(&item);
-    request_chunk(p, q);
+    request_chunk(chunk->pos);
 }
 
-void Session::force_chunks(Player *pl, int radius) {
-    State &pos = pl->state;
-    int p = chunked(pos.x);
-    int q = chunked(pos.z);
-    for (int dp = -radius; dp <= radius; dp++) {
-        for (int dq = -radius; dq <= radius; dq++) {
-            if (auto *chunk = world->force_chunk(p + dp, q + dq)) {
-                if (chunk->unloaded)
-                    create_chunk(chunk, p, q);
-                if (chunk->dirty)
-                    gen_chunk_buffer(chunk);
-            }
-        }
-    }
+void Session::force_chunks(Player *pl) {
+    ChunkPos pos = pl->state.chunk();
+    pos.surrounding<1>([&](ChunkPos pos2){
+      if (auto *chunk = world->force_chunk(pos2)) {
+          if (chunk->unloaded)
+              create_chunk(chunk);
+          if (chunk->dirty)
+              gen_chunk_buffer(chunk);
+      }
+    })
 }
 
 void Session::ensure_chunks(Player *p) {
@@ -412,8 +406,8 @@ void Session::parse_buffer(char *buffer) {
         }
         int bp, bq, bx, by, bz, bw;
         if (sscanf(line, "B,%d,%d,%d,%d,%d,%d", &bp, &bq, &bx, &by, &bz, &bw) == 6) {
-            Block block {bx, by, bz, bw};
-            set_block(bp, bq, bx, by, bz, bw, false);
+            Block block {{bx, by, bz}, bw};
+            set_block({bp, bq}, block, false);
             if (player_intersects_block(2, player->state, block)) {
                 state.y = world->highest_block(state.x, state.z) + 2;
             }
@@ -470,30 +464,31 @@ void Session::parse_buffer(char *buffer) {
         int face;
         char text[MAX_SIGN_LENGTH] = {0};
         if (sscanf(line, format, &bp, &bq, &bx, &by, &bz, &face, text) >= 6) {
-            set_sign(bp, bq, bx, by, bz, face, text, 0);
+            Sign sign {{bx, by, bz, face}, text};
+            set_sign({bp, bq}, sign, false);
         }
         line = tokenize(nullptr, "\n", &key);
     }
 }
 
-void Session::render_sky(Attrib *attrib, Player *p, int w, int h) {
+void Session::render_sky(Shader *attrib, Player *p, int w, int h) {
     world->render_sky(attrib, p, w, h);
 }
 
-void Session::render_signs(Attrib *attrib, Player *p, int w, int h) {
+void Session::render_signs(Shader *attrib, Player *p, int w, int h) {
     world->render_signs(attrib, p, w, h);
 }
 
-void Session::render_players(Attrib *attrib, Player *p, int w, int h) {
+void Session::render_players(Shader *attrib, Player *p, int w, int h) {
     world->render_players(attrib, p, w, h);
 }
 
-void Session::render_chunks(Attrib *attrib, Player *p, int w, int h) {
+void Session::render_chunks(Shader *attrib, Player *p, int w, int h) {
     ensure_chunks(p);
     window_->set_face_count(world->render_chunks(attrib, p, w, h));
 }
 
-void Session::render_wireframe(Attrib *attrib, Player *p, int w, int h) {
+void Session::render_wireframe(Shader *attrib, Player *p, int w, int h) {
     ::render_wireframe(world.get(), attrib, p, w, h);
 }
 

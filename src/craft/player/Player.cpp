@@ -1,6 +1,6 @@
 #include "Player.h"
 
-#include "craft/draw/cube.h"
+#include "craft/draw/Cube.h"
 #include "craft/support/matrix.h"
 
 void update_player(Player *player, float x, float y, float z, float rx, float ry, int interpolate) {
@@ -77,6 +77,6 @@ void make_player(float *data, float x, float y, float z, float rx, float ry) {
     mat_apply(data, ma, 36, 0, 10);
 }
 
-void draw_player(Attrib *attrib, Player *player) {
+void draw_player(Shader *attrib, Player *player) {
     draw_cube(attrib, player->buffer);
 }

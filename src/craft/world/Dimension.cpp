@@ -1,7 +1,7 @@
 #include "Dimension.h"
 
 #include "craft/draw/Sphere.h"
-#include "craft/util/util.h"
+#include "craft/util/Util.h"
 
 GLuint gen_sky_buffer() {
     float data[12288];

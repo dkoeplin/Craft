@@ -3,58 +3,10 @@
 #include <cmath>
 
 #include "craft/player/Player.h"
-#include "craft/util/util.h"
+#include "craft/util/Util.h"
 #include "craft/world/Chunk.h"
 #include "craft/world/State.h"
 
-int chunk_distance(Chunk *chunk, int p, int q) {
-    int dp = ABS(chunk->p - p);
-    int dq = ABS(chunk->q - q);
-    return MAX(dp, dq);
-}
-
-int chunk_visible(float planes[6][4], int p, int q, int miny, int maxy, bool ortho) {
-    float x = p * CHUNK_SIZE - 1;
-    float z = q * CHUNK_SIZE - 1;
-    float min_y = miny;
-    float max_y = maxy;
-    float d = CHUNK_SIZE + 1;
-    float points[8][3] = {
-            {x + 0, min_y, z + 0},
-            {x + d, min_y, z + 0},
-            {x + 0, min_y, z + d},
-            {x + d, min_y, z + d},
-            {x + 0, max_y, z + 0},
-            {x + d, max_y, z + 0},
-            {x + 0, max_y, z + d},
-            {x + d, max_y, z + d}
-    };
-    int n = ortho ? 4 : 6;
-    for (int i = 0; i < n; i++) {
-        int in = 0;
-        int out = 0;
-        for (int j = 0; j < 8; j++) {
-            float d =
-                    planes[i][0] * points[j][0] +
-                            planes[i][1] * points[j][1] +
-                            planes[i][2] * points[j][2] +
-                            planes[i][3];
-            if (d < 0) {
-                out++;
-            }
-            else {
-                in++;
-            }
-            if (in && out) {
-                break;
-            }
-        }
-        if (in == 0) {
-            return 0;
-        }
-    }
-    return 1;
-}
 
 
 void occlusion(
@@ -142,7 +94,7 @@ float player_crosshair_distance(Player *p1, Player *p2) {
     Vec<float> vec = get_sight_vector(s1->rx, s1->ry);
     vec *= player_player_distance(p1, p2);
 
-    return (s1->pos() - s2->pos() - vec).len();
+    return (s1->loc() - s2->loc() - vec).len();
 }
 
 Block hit_test(Map *map, float max_distance, bool use_prev,
@@ -150,7 +102,7 @@ Block hit_test(Map *map, float max_distance, bool use_prev,
 {
     int m = 32;
     Vec<float> step = vec / m;
-    Vec<float> current = state.pos();
+    Vec<float> current = state.loc();
 
     Vec<int> previous;
     for (int i = 0; i < max_distance * m; i++) {

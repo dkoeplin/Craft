@@ -3,8 +3,8 @@
 #include "GL/glew.h"
 
 #include "craft/draw/Triangles.h"
-#include "craft/world/Attrib.h"
+#include "craft/draw/Shader.h"
 
-void draw_item(Attrib *attrib, GLuint buffer, int count) {
+void draw_item(Shader *attrib, GLuint buffer, int count) {
     draw_triangles_3d_ao(attrib, buffer, count);
 }

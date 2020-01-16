@@ -1,7 +1,7 @@
 #ifndef CRAFT_SRC_CRAFT_DRAW_TEXT_H_
 #define CRAFT_SRC_CRAFT_DRAW_TEXT_H_
 
-struct Attrib;
+struct Shader;
 struct Window;
 
 enum class Justify {
@@ -10,6 +10,6 @@ enum class Justify {
   Right = 2
 };
 
-void render_text(Window *window, Attrib *attrib, Justify justify, float x, float y, float n, char *text);
+void render_text(Window *window, Shader *attrib, Justify justify, float x, float y, float n, char *text);
 
 #endif //CRAFT_SRC_CRAFT_DRAW_TEXT_H_

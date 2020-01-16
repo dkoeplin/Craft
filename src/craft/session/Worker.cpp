@@ -9,7 +9,8 @@
 #include "craft/support/matrix.h"
 #include "craft/util/Logging.h"
 #include "craft/world/Chunk.h"
-#include "craft/world/world.h"
+#include "craft/world/State.h"
+#include "craft/world/World.h"
 
 void WorkerItem::free_maps() {
     for (int a = 0; a < 3; a++) {
@@ -31,7 +32,7 @@ int worker_run(void *arg) {
     bool running = true;
     while (running) {
         mtx_lock(&worker->mtx);
-        while (worker->state != Worker::State::Busy) {
+        while (worker->state != Worker::Status::Busy) {
             cnd_wait(&worker->cnd, &worker->mtx);
         }
         mtx_unlock(&worker->mtx);
@@ -41,7 +42,7 @@ int worker_run(void *arg) {
         }
         compute_chunk(item);
         mtx_lock(&worker->mtx);
-        worker->state = Worker::State::Done;
+        worker->state = Worker::Status::Done;
         mtx_unlock(&worker->mtx);
     }
     return 0;
@@ -54,12 +55,12 @@ Worker::Worker(Session *session, int index) : index(index), session(session) {
 }
 
 void Worker::ack() {
-    REQUIRE(state == State::Done, "Cannot ack worker before it is complete.");
-    state = State::Idle;
+    REQUIRE(state == Status::Done, "Cannot ack worker before it is complete.");
+    state = Status::Idle;
 }
 
 Chunk *Worker::update_chunk(World *world) {
-    Chunk *chunk = world->find_chunk(item.p, item.q);
+    Chunk *chunk = world->find_chunk(item.pos);
     if (chunk) {
         if (item.load) {
             map_free(&chunk->map);
@@ -76,15 +77,14 @@ Chunk *Worker::update_chunk(World *world) {
 
 
 void Worker::ensure_chunks(Player *player) {
-    auto *s = &player->state;
+    State &s = player->state;
     float matrix[16];
     set_matrix_3d(
             matrix, session->window()->width(), session->window()->height(),
-            s->x, s->y, s->z, s->rx, s->ry, player->fov, player->ortho, player->render_radius);
+            s.x, s.y, s.z, s.rx, s.ry, player->fov, player->ortho, player->render_radius);
     float planes[6][4];
     frustum_planes(planes, player->render_radius, matrix);
-    int p = chunked(s->x);
-    int q = chunked(s->z);
+    int pos = s.chunk();
     int r = player->create_radius;
     int start = 0x0fffffff;
     int best_score = start;
@@ -92,13 +92,13 @@ void Worker::ensure_chunks(Player *player) {
     int best_b = 0;
     for (int dp = -r; dp <= r; dp++) {
         for (int dq = -r; dq <= r; dq++) {
-            int a = p + dp;
-            int b = q + dq;
+            int a = pos.x + dp;
+            int b = pos.z + dq;
             int cindex = (ABS(a) ^ ABS(b)) % WORKERS;
             if (cindex != this->index) {
                 continue;
             }
-            Chunk *chunk = session->world->find_chunk(a, b);
+            Chunk *chunk = session->world->find_chunk({a, b});
             if (chunk && !chunk->dirty) {
                 continue;
             }
@@ -127,14 +127,13 @@ void Worker::ensure_chunks(Player *player) {
             chunk->unloaded = false;
             session->init_chunk(chunk);
         }
-        item.p = chunk->p;
-        item.q = chunk->q;
+        item.pos = chunk->pos;
         item.load = load;
         for (int dp = -1; dp <= 1; dp++) {
             for (int dq = -1; dq <= 1; dq++) {
                 Chunk *other = chunk;
                 if (dp || dq) {
-                    other = session->world->find_chunk(chunk->p + dp, chunk->q + dq);
+                    other = session->world->find_chunk({chunk->pos.x + dp, chunk->pos.z + dq});
                 }
                 if (other) {
                     Map *block_map = (Map *)malloc(sizeof(Map));
@@ -151,7 +150,7 @@ void Worker::ensure_chunks(Player *player) {
             }
         }
         chunk->dirty = false;
-        state = State::Busy;
+        state = Status::Busy;
         cnd_signal(&cnd);
     }
 }

@@ -3,7 +3,7 @@
 #include "GL/glew.h"
 
 extern "C" {
-    #include "noise.h"
+#include "noise.h"
 }
 
 #include "config.h"
@@ -11,11 +11,11 @@ extern "C" {
 #include "craft/draw/Triangles.h"
 #include "craft/support/matrix.h"
 
+#include "craft/draw/Shader.h"
 #include "craft/items/Item.h"
 #include "craft/physics/Physics.h"
 #include "craft/player/Player.h"
 #include "craft/session/Worker.h"
-#include "craft/draw/Shader.h"
 #include "craft/world/Chunk.h"
 #include "craft/world/Dimension.h"
 #include "craft/world/Sign.h"
@@ -40,9 +40,7 @@ Player *World::next_player(Player *p) {
     if (p == nullptr)
         return players.front().get();
 
-    auto iter = std::find_if(players.begin(), players.end(), [&](auto &player){
-       return player.get() == p;
-    });
+    auto iter = std::find_if(players.begin(), players.end(), [&](auto &player) { return player.get() == p; });
     if (iter == players.end()) {
         return players.front().get();
     } else {
@@ -70,14 +68,12 @@ Player *World::find_player(int64_t id) {
 }
 
 void World::delete_player(int64_t id) {
-    auto index = std::find_if(players.begin(), players.end(), [&id](auto &player){ return player->id == id; });
+    auto index = std::find_if(players.begin(), players.end(), [&id](auto &player) { return player->id == id; });
     if (index != players.end())
         players.erase(index);
 }
 
-void World::delete_all_players() {
-    players.clear();
-}
+void World::delete_all_players() { players.clear(); }
 
 void World::move_entities(double dt) {
     for (auto &player : players) {
@@ -99,7 +95,6 @@ void World::move_entities(double dt) {
     }
 }
 
-
 float World::time_of_day() {
     if (day_length <= 0) {
         return 0.5;
@@ -116,8 +111,7 @@ float World::get_daylight() {
     if (timer < 0.5) {
         float t = (timer - 0.25) * 100;
         return 1 / (1 + powf(2, -t));
-    }
-    else {
+    } else {
         float t = (timer - 0.85) * 100;
         return 1 - 1 / (1 + powf(2, -t));
     }
@@ -169,10 +163,11 @@ int World::highest_block(int nx, int nz) {
     if (chunk) {
         Map *map = &chunk->map;
         MAP_FOR_EACH(map, ex, ey, ez, ew) {
-                if (is_obstacle(ew) && ex == nx && ez == nz) {
-                    result = MAX(result, ey);
-                }
-            } END_MAP_FOR_EACH;
+            if (is_obstacle(ew) && ex == nx && ez == nz) {
+                result = MAX(result, ey);
+            }
+        }
+        END_MAP_FOR_EACH;
     }
     return result;
 }
@@ -215,9 +210,7 @@ void create_world(int p, int q, world_func func, void *arg) {
                 }
                 // trees
                 int ok = SHOW_TREES;
-                if (dx - 4 < 0 || dz - 4 < 0 ||
-                    dx + 4 >= CHUNK_SIZE || dz + 4 >= CHUNK_SIZE)
-                {
+                if (dx - 4 < 0 || dz - 4 < 0 || dx + 4 >= CHUNK_SIZE || dz + 4 >= CHUNK_SIZE) {
                     ok = 0;
                 }
                 if (ok && simplex2(x, z, 6, 0.5, 2) > 0.84) {
@@ -248,7 +241,6 @@ void create_world(int p, int q, world_func func, void *arg) {
     }
 }
 
-
 int World::chunk_has_lights(Chunk *chunk) {
     if (!SHOW_LIGHTS) {
         return 0;
@@ -274,14 +266,13 @@ int World::chunk_has_lights(Chunk *chunk) {
 void World::mark_chunk_dirty(Chunk *chunk) {
     chunk->dirty = true;
     if (chunk_has_lights(chunk)) {
-        chunk->pos.surrounding<1>([&](ChunkPos pos2){
-          if (Chunk *other = find_chunk(pos2)) {
-              other->dirty = true;
-          }
+        chunk->pos.surrounding<1>([&](ChunkPos pos2) {
+            if (Chunk *other = find_chunk(pos2)) {
+                other->dirty = true;
+            }
         });
     }
 }
-
 
 //// Physics
 Block World::hit_test(const State &state, bool use_prev) {
@@ -396,28 +387,24 @@ Player *World::closest_player_in_view(Player *player) {
 }
 
 void World::delete_chunks(const std::vector<Player *> &observers) {
-    auto pend = std::remove_if(chunks.begin(), chunks.end(), [&](auto &chunk){
-      bool should_delete = true;
-      for (auto *v : observers) {
-          if (chunk_distance(chunk->pos, v->state.chunk()) < v->delete_radius) {
-              should_delete = false;
-              break;
-          }
-      }
-      return should_delete;
+    auto pend = std::remove_if(chunks.begin(), chunks.end(), [&](auto &chunk) {
+        bool should_delete = true;
+        for (auto *v : observers) {
+            if (chunk_distance(chunk->pos, v->state.chunk()) < v->delete_radius) {
+                should_delete = false;
+                break;
+            }
+        }
+        return should_delete;
     });
     chunks.erase(pend, chunks.end());
 }
 
-
-
 void World::render_players(Shader *attrib, Player *player, int width, int height) {
     State *s = &player->state;
     float matrix[16];
-    set_matrix_3d(
-            matrix, width, height,
-            s->x, s->y, s->z, s->rx, s->ry,
-            player->fov, player->ortho, player->render_radius);
+    set_matrix_3d(matrix, width, height, s->x, s->y, s->z, s->rx, s->ry, player->fov, player->ortho,
+                  player->render_radius);
     glUseProgram(attrib->program);
     glUniformMatrix4fv(attrib->matrix, 1, GL_FALSE, matrix);
     glUniform3f(attrib->camera, s->x, s->y, s->z);

@@ -4,12 +4,8 @@
 struct Shader;
 struct Window;
 
-enum class Justify {
-  Left = 0,
-  Center = 1,
-  Right = 2
-};
+enum class Justify { Left = 0, Center = 1, Right = 2 };
 
 void render_text(Window *window, Shader *attrib, Justify justify, float x, float y, float n, char *text);
 
-#endif //CRAFT_SRC_CRAFT_DRAW_TEXT_H_
+#endif // CRAFT_SRC_CRAFT_DRAW_TEXT_H_

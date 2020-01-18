@@ -4,12 +4,12 @@
 #include "GL/glew.h"
 
 struct Dimension {
-  virtual ~Dimension();
-  GLuint sky;
+    virtual ~Dimension();
+    GLuint sky;
 };
 
 struct Earth : public Dimension {
-  Earth();
+    Earth();
 };
 
-#endif //CRAFT_SRC_CRAFT_WORLD_DIMENSION_H_
+#endif // CRAFT_SRC_CRAFT_WORLD_DIMENSION_H_

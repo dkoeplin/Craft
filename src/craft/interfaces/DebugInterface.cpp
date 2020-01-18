@@ -2,15 +2,15 @@
 
 #include <cmath>
 
-#include "craft/draw/Text.h"
 #include "craft/draw/Render.h"
+#include "craft/draw/Text.h"
 #include "craft/player/Player.h"
 #include "craft/session/Session.h"
 #include "craft/session/Window.h"
 #include "craft/world/World.h"
 
 DebugInterface::DebugInterface(Session *session, World *world, Player *player)
-: Interface(session), world(world), player(player) {}
+    : Interface(session), world(world), player(player) {}
 
 bool DebugInterface::on_key_press(Key key, int scancode, ButtonMods mods) {
     if (key == Key::Escape) {
@@ -19,7 +19,6 @@ bool DebugInterface::on_key_press(Key key, int scancode, ButtonMods mods) {
     }
     return false;
 }
-
 
 bool DebugInterface::tick(double dt) {
     frames++;
@@ -44,11 +43,8 @@ bool DebugInterface::render(bool top) {
     char am_pm = hour < 12 ? 'a' : 'p';
     hour = hour % 12;
     hour = hour ? hour : 12;
-    snprintf(text_buffer, 1024,
-             "(%d, %d) (%.2f, %.2f, %.2f) [%zu, %d, %d] %d%cm %dfps",
-             chunked(s.x), chunked(s.z), s.x, s.y, s.z,
-             world->player_count(), world->chunk_count(),
-             window->face_count() * 2, hour, am_pm, fps);
+    snprintf(text_buffer, 1024, "(%d, %d) (%.2f, %.2f, %.2f) [%zu, %d, %d] %d%cm %dfps", chunked(s.x), chunked(s.z),
+             s.x, s.y, s.z, world->player_count(), world->chunk_count(), window->face_count() * 2, hour, am_pm, fps);
     render_text(window, Render::text(), Justify::Left, tx, ty, ts, text_buffer);
     return false;
 }

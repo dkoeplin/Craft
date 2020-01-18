@@ -1,9 +1,9 @@
+#include <cerrno>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
-#include <cerrno>
-#include <vector>
 #include <string>
+#include <vector>
 
 #include "craft/util/Logging.h"
 #include "craft/util/Util.h"
@@ -15,13 +15,12 @@ extern "C" {
 
 int rand_int(int n) {
     int result;
-    while (n <= (result = rand() / (RAND_MAX / n)));
+    while (n <= (result = rand() / (RAND_MAX / n)))
+        ;
     return result;
 }
 
-double rand_double() {
-    return (double)rand() / (double)RAND_MAX;
-}
+double rand_double() { return (double)rand() / (double)RAND_MAX; }
 
 char *load_file(const char *path) {
     FILE *file = fopen(path, "rb");
@@ -44,17 +43,12 @@ GLuint gen_buffer(GLsizei size, GLfloat *data) {
     return buffer;
 }
 
-void del_buffer(GLuint buffer) {
-    glDeleteBuffers(1, &buffer);
-}
+void del_buffer(GLuint buffer) { glDeleteBuffers(1, &buffer); }
 
-GLfloat *malloc_faces(int components, int faces) {
-    return (GLfloat *)malloc(sizeof(GLfloat) * 6 * components * faces);
-}
+GLfloat *malloc_faces(int components, int faces) { return (GLfloat *)malloc(sizeof(GLfloat) * 6 * components * faces); }
 
 GLuint gen_faces(int components, int faces, GLfloat *data) {
-    GLuint buffer = gen_buffer(
-        sizeof(GLfloat) * 6 * components * faces, data);
+    GLuint buffer = gen_buffer(sizeof(GLfloat) * 6 * components * faces, data);
     free(data);
     return buffer;
 }
@@ -154,16 +148,11 @@ char *tokenize(char *str, const char *delim, char **key) {
 }
 
 int char_width(char input) {
-    static const int lookup[128] = {
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        4, 2, 4, 7, 6, 9, 7, 2, 3, 3, 4, 6, 3, 5, 2, 7,
-        6, 3, 6, 6, 6, 6, 6, 6, 6, 6, 2, 3, 5, 6, 5, 7,
-        8, 6, 6, 6, 6, 6, 6, 6, 6, 4, 6, 6, 5, 8, 8, 6,
-        6, 7, 6, 6, 6, 6, 8,10, 8, 6, 6, 3, 6, 3, 6, 6,
-        4, 7, 6, 6, 6, 6, 5, 6, 6, 2, 5, 5, 2, 9, 6, 6,
-        6, 6, 6, 6, 5, 6, 6, 6, 6, 6, 6, 4, 2, 5, 7, 0
-    };
+    static const int lookup[128] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                    0, 0, 0, 0, 0, 0, 4, 2, 4, 7,  6, 9, 7, 2, 3, 3, 4, 6, 3, 5, 2, 7, 6, 3, 6, 6,
+                                    6, 6, 6, 6, 6, 6, 2, 3, 5, 6,  5, 7, 8, 6, 6, 6, 6, 6, 6, 6, 6, 4, 6, 6, 5, 8,
+                                    8, 6, 6, 7, 6, 6, 6, 6, 8, 10, 8, 6, 6, 3, 6, 3, 6, 6, 4, 7, 6, 6, 6, 6, 5, 6,
+                                    6, 2, 5, 5, 2, 9, 6, 6, 6, 6,  6, 6, 5, 6, 6, 6, 6, 6, 6, 4, 2, 5, 7, 0};
     return lookup[(int)input];
 }
 
@@ -194,8 +183,7 @@ int wrap(const char *input, int max_width, char *output, int max_length) {
                     line_width = 0;
                     line_number++;
                     strncat(output, "\n", max_length - strlen(output) - 1);
-                }
-                else {
+                } else {
                     strncat(output, " ", max_length - strlen(output) - 1);
                 }
             }

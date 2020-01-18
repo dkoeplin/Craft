@@ -1,13 +1,13 @@
 #include "Client.h"
 
 #ifdef _WIN32
-    #include <winsock2.h>
-    #include <windows.h>
-    #define close closesocket
-    #define sleep Sleep
+#include <windows.h>
+#include <winsock2.h>
+#define close closesocket
+#define sleep Sleep
 #else
-    #include <netdb.h>
-    #include <unistd.h>
+#include <netdb.h>
+#include <unistd.h>
 #endif
 
 #include <cstdio>
@@ -58,76 +58,88 @@ void Client::login(const char *username, const char *identity_token) {
     send(buffer);
 }
 
-void Client::position(State &state) { if (running) {
-    static State prev;
-    float distance =
-        (prev.x - state.x) * (prev.x - state.x) +
-        (prev.y - state.y) * (prev.y - state.y) +
-        (prev.z - state.z) * (prev.z - state.z) +
-        (prev.rx - state.rx) * (prev.rx - state.rx) +
-        (prev.ry - state.ry) * (prev.ry - state.ry);
-    if (distance < 0.0001) {
-        return;
+void Client::position(State &state) {
+    if (running) {
+        static State prev;
+        float distance = (prev.x - state.x) * (prev.x - state.x) + (prev.y - state.y) * (prev.y - state.y) +
+                         (prev.z - state.z) * (prev.z - state.z) + (prev.rx - state.rx) * (prev.rx - state.rx) +
+                         (prev.ry - state.ry) * (prev.ry - state.ry);
+        if (distance < 0.0001) {
+            return;
+        }
+        prev = state;
+        char buffer[1024];
+        snprintf(buffer, 1024, "P,%.2f,%.2f,%.2f,%.2f,%.2f\n", state.x, state.y, state.z, state.rx, state.ry);
+        send(buffer);
     }
-    prev = state;
-    char buffer[1024];
-    snprintf(buffer, 1024, "P,%.2f,%.2f,%.2f,%.2f,%.2f\n", state.x, state.y, state.z, state.rx, state.ry);
-    send(buffer);
-}}
+}
 
-void Client::chunk(int p, int q, int key) { if (running) {
-    char buffer[1024];
-    snprintf(buffer, 1024, "C,%d,%d,%d\n", p, q, key);
-    send(buffer);
-}}
-
-void Client::block(int x, int y, int z, int w) { if (running) {
-    char buffer[1024];
-    snprintf(buffer, 1024, "B,%d,%d,%d,%d\n", x, y, z, w);
-    send(buffer);
-}}
-
-void Client::light(int x, int y, int z, int w) { if (running) {
-    char buffer[1024];
-    snprintf(buffer, 1024, "L,%d,%d,%d,%d\n", x, y, z, w);
-    send(buffer);
-}}
-
-void Client::sign(int x, int y, int z, int face, const char *text) { if (running) {
-    char buffer[1024];
-    snprintf(buffer, 1024, "S,%d,%d,%d,%d,%s\n", x, y, z, face, text);
-    send(buffer);
-}}
-
-void Client::talk(const char *text) { if (running) {
-    if (strlen(text) == 0) {
-        return;
+void Client::chunk(int p, int q, int key) {
+    if (running) {
+        char buffer[1024];
+        snprintf(buffer, 1024, "C,%d,%d,%d\n", p, q, key);
+        send(buffer);
     }
-    char buffer[1024];
-    snprintf(buffer, 1024, "T,%s\n", text);
-    send(buffer);
-}}
+}
 
-char *Client::recv() { if (running) {
-    char *result = nullptr;
-    mtx_lock(&mutex);
-    char *p = queue + qsize - 1;
-    while (p >= queue && *p != '\n') {
-        p--;
+void Client::block(int x, int y, int z, int w) {
+    if (running) {
+        char buffer[1024];
+        snprintf(buffer, 1024, "B,%d,%d,%d,%d\n", x, y, z, w);
+        send(buffer);
     }
-    if (p >= queue) {
-        int length = p - queue + 1;
-        result = (char *)malloc(sizeof(char) * (length + 1));
-        memcpy(result, queue, sizeof(char) * length);
-        result[length] = '\0';
-        int remaining = qsize - length;
-        memmove(queue, p + 1, remaining);
-        qsize -= length;
-        bytes_received += length;
+}
+
+void Client::light(int x, int y, int z, int w) {
+    if (running) {
+        char buffer[1024];
+        snprintf(buffer, 1024, "L,%d,%d,%d,%d\n", x, y, z, w);
+        send(buffer);
     }
-    mtx_unlock(&mutex);
-    return result;
-} else return nullptr; }
+}
+
+void Client::sign(int x, int y, int z, int face, const char *text) {
+    if (running) {
+        char buffer[1024];
+        snprintf(buffer, 1024, "S,%d,%d,%d,%d,%s\n", x, y, z, face, text);
+        send(buffer);
+    }
+}
+
+void Client::talk(const char *text) {
+    if (running) {
+        if (strlen(text) == 0) {
+            return;
+        }
+        char buffer[1024];
+        snprintf(buffer, 1024, "T,%s\n", text);
+        send(buffer);
+    }
+}
+
+char *Client::recv() {
+    if (running) {
+        char *result = nullptr;
+        mtx_lock(&mutex);
+        char *p = queue + qsize - 1;
+        while (p >= queue && *p != '\n') {
+            p--;
+        }
+        if (p >= queue) {
+            int length = p - queue + 1;
+            result = (char *)malloc(sizeof(char) * (length + 1));
+            memcpy(result, queue, sizeof(char) * length);
+            result[length] = '\0';
+            int remaining = qsize - length;
+            memmove(queue, p + 1, remaining);
+            qsize -= length;
+            bytes_received += length;
+        }
+        mtx_unlock(&mutex);
+        return result;
+    } else
+        return nullptr;
+}
 
 int recv_worker(void *arg) {
     char *data = (char *)malloc(sizeof(char) * RECV_SIZE);

@@ -4,12 +4,8 @@
 #include "craft/interfaces/Interface.h"
 
 struct SignInterface : public Interface {
- public:
-
-
- private:
-
+  public:
+  private:
 };
 
-
-#endif //CRAFT_SRC_CRAFT_INTERFACES_SIGNINTERFACE_H_
+#endif // CRAFT_SRC_CRAFT_INTERFACES_SIGNINTERFACE_H_

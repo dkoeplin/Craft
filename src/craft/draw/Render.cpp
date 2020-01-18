@@ -95,10 +95,3 @@ void Render::load_shaders() {
     sky_.sampler = glGetUniformLocation(program, "sampler");
     sky_.timer = glGetUniformLocation(program, "timer");
 }
-
-
-
-
-
-
-

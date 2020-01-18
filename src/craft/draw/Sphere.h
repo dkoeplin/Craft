@@ -3,4 +3,4 @@
 
 void make_sphere(float *data, float r, int detail);
 
-#endif //CRAFT_SRC_CRAFT_DRAW_SPHERE_H_
+#endif // CRAFT_SRC_CRAFT_DRAW_SPHERE_H_

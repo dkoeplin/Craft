@@ -3,19 +3,16 @@
 #include "GL/glew.h"
 
 #include "craft/draw/Lines.h"
+#include "craft/draw/Shader.h"
 #include "craft/session/Window.h"
 #include "craft/support/matrix.h"
 #include "craft/util/Util.h"
-#include "craft/draw/Shader.h"
 
 GLuint gen_crosshair_buffer(Window *window) {
     float x = window->width() / 2;
     float y = window->height() / 2;
     float p = 10 * window->scale();
-    float data[] = {
-            x, y - p, x, y + p,
-            x - p, y, x + p, y
-    };
+    float data[] = {x, y - p, x, y + p, x - p, y, x + p, y};
     return gen_buffer(sizeof(data), data);
 }
 
@@ -31,5 +28,3 @@ void render_crosshairs(Window *window, Shader *attrib) {
     del_buffer(crosshair_buffer);
     glDisable(GL_COLOR_LOGIC_OP);
 }
-
-

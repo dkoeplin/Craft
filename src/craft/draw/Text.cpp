@@ -5,11 +5,11 @@
 #include "GL/glew.h"
 
 #include "craft/draw/Character.h"
+#include "craft/draw/Shader.h"
 #include "craft/draw/Triangles.h"
 #include "craft/session/Window.h"
 #include "craft/support/matrix.h"
 #include "craft/util/Util.h"
-#include "craft/draw/Shader.h"
 
 GLuint gen_text_buffer(float x, float y, float n, char *text) {
     int length = strlen(text);

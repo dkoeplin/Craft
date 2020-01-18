@@ -2,8 +2,8 @@
 
 #include <cmath>
 
-#include "GLFW/glfw3.h"
 #include "GL/glew.h"
+#include "GLFW/glfw3.h"
 
 #include "craft/draw/Crosshairs.h"
 #include "craft/draw/Render.h"
@@ -17,7 +17,7 @@
 #include "craft/world/World.h"
 
 WorldInterface::WorldInterface(Session *session, World *world, Player *player)
- : Interface(session), world(world), player(player) {
+    : Interface(session), world(world), player(player) {
     REQUIRE(player, "[WorldInterface] Player was null");
     REQUIRE(world, "[WorldInterface] World was null");
     REQUIRE(session, "[WorldInterface] Session was null");
@@ -29,20 +29,24 @@ bool WorldInterface::on_mouse_button(MouseButton button, MouseAction action, But
     }
     bool control = mods.control() || mods.super();
     switch (button) {
-        case MouseButton::Left: {
-            if (control) on_right_click();
-            else on_left_click();
-            return true;
-        }
-        case MouseButton::Right: {
-            if (control) on_light();
-            else on_right_click();
-            return true;
-        }
-        case MouseButton::Middle: {
-            on_middle_click();
-            return true;
-        }
+    case MouseButton::Left: {
+        if (control)
+            on_right_click();
+        else
+            on_left_click();
+        return true;
+    }
+    case MouseButton::Right: {
+        if (control)
+            on_light();
+        else
+            on_right_click();
+        return true;
+    }
+    case MouseButton::Middle: {
+        on_middle_click();
+        return true;
+    }
     }
 }
 
@@ -60,17 +64,16 @@ bool WorldInterface::on_scroll(double dx, double dy) {
     return true;
 }
 
-
 bool WorldInterface::on_key_press(Key key, int scancode, ButtonMods mods) {
     bool control = mods.control() || mods.super();
     if (key == Key::Escape) {
         session->window()->defocus();
         return true;
     } else if (key == player->keys.Chat) {
-        session->show_chat(/*cmd*/false);
+        session->show_chat(/*cmd*/ false);
         return true;
     } else if (key == player->keys.Command) {
-        session->show_chat(/*cmd*/true);
+        session->show_chat(/*cmd*/ true);
         return true;
     } else if (key == player->keys.Sign) {
         // TODO: sign window
@@ -116,14 +119,13 @@ bool WorldInterface::mouse_movement(double x, double y, double dx, double dy, do
     s.rx += dx * MOVE_SENSITIVITY;
     if (INVERT_MOUSE) {
         s.ry += dy * MOVE_SENSITIVITY;
-    }
-    else {
+    } else {
         s.ry -= dy * MOVE_SENSITIVITY;
     }
     if (s.rx < 0) {
         s.rx += RADIANS(360);
     }
-    if (s.rx >= RADIANS(360)){
+    if (s.rx >= RADIANS(360)) {
         s.rx -= RADIANS(360);
     }
     s.ry = MAX(s.ry, -RADIANS(90));
@@ -138,20 +140,27 @@ bool WorldInterface::held_keys(double dt) {
     State &state = player->state;
     player->ortho = is_key_pressed(player->keys.Ortho) ? 64 : 0;
     player->fov = is_key_pressed(player->keys.Zoom) ? 15 : 65;
-    if (is_key_pressed(player->keys.Forward)) sz--;
-    if (is_key_pressed(player->keys.Backward)) sz++;
-    if (is_key_pressed(player->keys.Left)) sx--;
-    if (is_key_pressed(player->keys.Right)) sx++;
-    if (is_key_pressed(Key::Left)) state.rx -= m;
-    if (is_key_pressed(Key::Right)) state.rx += m;
-    if (is_key_pressed(Key::Up)) state.ry += m;
-    if (is_key_pressed(Key::Down)) state.ry -= m;
+    if (is_key_pressed(player->keys.Forward))
+        sz--;
+    if (is_key_pressed(player->keys.Backward))
+        sz++;
+    if (is_key_pressed(player->keys.Left))
+        sx--;
+    if (is_key_pressed(player->keys.Right))
+        sx++;
+    if (is_key_pressed(Key::Left))
+        state.rx -= m;
+    if (is_key_pressed(Key::Right))
+        state.rx += m;
+    if (is_key_pressed(Key::Up))
+        state.ry += m;
+    if (is_key_pressed(Key::Down))
+        state.ry -= m;
     FVec3 vec = get_motion_vector(player->flying, sz, sx, state.rx, state.ry);
     if (is_key_pressed(player->keys.Jump)) {
         if (player->flying) {
             vec.y = 1;
-        }
-        else if (vec.y == 0) {
+        } else if (vec.y == 0) {
             player->accel.y = 8;
         }
     }
@@ -231,12 +240,10 @@ bool WorldInterface::render(bool top) {
 
     if (SHOW_PLAYER_NAMES) {
         if (target != player) {
-            render_text(window, Render::text(), Justify::Center, width/2.0f, ts, ts, target->name);
+            render_text(window, Render::text(), Justify::Center, width / 2.0f, ts, ts, target->name);
         }
         if (auto *other = world->closest_player_in_view(target)) {
-            render_text(window, Render::text(), Justify::Center,
-                        width / 2, height / 2 - ts - 24, ts,
-                        other->name);
+            render_text(window, Render::text(), Justify::Center, width / 2, height / 2 - ts - 24, ts, other->name);
         }
     }
 
@@ -268,5 +275,3 @@ bool WorldInterface::render(bool top) {
     }
     return false;
 }
-
-

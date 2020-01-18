@@ -1,14 +1,14 @@
 #include "ChatInterface.h"
 
-#include "craft/session/Session.h"
-#include "craft/session/Window.h"
 #include "craft/draw/Render.h"
 #include "craft/draw/Text.h"
 #include "craft/player/Player.h"
+#include "craft/session/Session.h"
+#include "craft/session/Window.h"
 #include "craft/world/World.h"
 
 ChatInterface::ChatInterface(Session *session, World *world)
- : Interface(session), world(world), typing_buffer{0}, messages{{0}} {
+    : Interface(session), world(world), typing_buffer{0}, messages{{0}} {
     memset(typing_buffer, 0, sizeof(char) * MAX_TEXT_LENGTH);
     memset(messages, 0, sizeof(char) * MAX_MESSAGES * MAX_TEXT_LENGTH);
 }
@@ -62,9 +62,7 @@ bool ChatInterface::on_key_press(Key key, int scancode, ButtonMods mods) {
     return true;
 }
 
-bool ChatInterface::held_keys(double dt) {
-    return visible;
-}
+bool ChatInterface::held_keys(double dt) { return visible; }
 
 bool ChatInterface::render(bool top) {
     float ts = 12 * window->scale();
@@ -131,78 +129,54 @@ bool ChatInterface::parse_command(const char *buffer) {
     int radius, count, xc, yc, zc;
     if (sscanf(buffer, "/identity %128s %128s", username, token) == 2) {
         session->set_identity(username, token);
-    }
-    else if (strcmp(buffer, "/logout") == 0) {
+    } else if (strcmp(buffer, "/logout") == 0) {
         session->logout();
-    }
-    else if (sscanf(buffer, "/login %128s", username) == 1) {
+    } else if (sscanf(buffer, "/login %128s", username) == 1) {
         session->login_user(username);
-    }
-    else if (sscanf(buffer, "/online %128s %128s", server_addr, server_port) >= 1) {
+    } else if (sscanf(buffer, "/online %128s %128s", server_addr, server_port) >= 1) {
         session->update_server(server_addr, server_port);
-    }
-    else if (sscanf(buffer, "/offline %128s", filename) == 1) {
+    } else if (sscanf(buffer, "/offline %128s", filename) == 1) {
         session->update_world_file(filename);
         session->update_server(nullptr);
-    }
-    else if (strcmp(buffer, "/offline") == 0) {
+    } else if (strcmp(buffer, "/offline") == 0) {
         session->update_server(nullptr);
-    }
-    else if (sscanf(buffer, "/view %d", &radius) == 1) {
+    } else if (sscanf(buffer, "/view %d", &radius) == 1) {
         session->set_draw_distance(radius);
-    }
-    else if (strcmp(buffer, "/copy") == 0) {
+    } else if (strcmp(buffer, "/copy") == 0) {
         copy();
-    }
-    else if (strcmp(buffer, "/paste") == 0) {
+    } else if (strcmp(buffer, "/paste") == 0) {
         paste();
-    }
-    else if (strcmp(buffer, "/tree") == 0) {
+    } else if (strcmp(buffer, "/tree") == 0) {
         session->tree(&block0);
-    }
-    else if (sscanf(buffer, "/array %d %d %d", &xc, &yc, &zc) == 3) {
+    } else if (sscanf(buffer, "/array %d %d %d", &xc, &yc, &zc) == 3) {
         session->array(&block1, &block0, xc, yc, zc);
-    }
-    else if (sscanf(buffer, "/array %d", &count) == 1) {
+    } else if (sscanf(buffer, "/array %d", &count) == 1) {
         session->array(&block1, &block0, count, count, count);
-    }
-    else if (strcmp(buffer, "/fcube") == 0) {
+    } else if (strcmp(buffer, "/fcube") == 0) {
         session->cube(&block0, &block1, 1);
-    }
-    else if (strcmp(buffer, "/cube") == 0) {
+    } else if (strcmp(buffer, "/cube") == 0) {
         session->cube(&block0, &block1, 0);
-    }
-    else if (sscanf(buffer, "/fsphere %d", &radius) == 1) {
+    } else if (sscanf(buffer, "/fsphere %d", &radius) == 1) {
         session->sphere(&block0, radius, 1, 0, 0, 0);
-    }
-    else if (sscanf(buffer, "/sphere %d", &radius) == 1) {
+    } else if (sscanf(buffer, "/sphere %d", &radius) == 1) {
         session->sphere(&block0, radius, 0, 0, 0, 0);
-    }
-    else if (sscanf(buffer, "/fcirclex %d", &radius) == 1) {
+    } else if (sscanf(buffer, "/fcirclex %d", &radius) == 1) {
         session->sphere(&block0, radius, 1, 1, 0, 0);
-    }
-    else if (sscanf(buffer, "/circlex %d", &radius) == 1) {
+    } else if (sscanf(buffer, "/circlex %d", &radius) == 1) {
         session->sphere(&block0, radius, 0, 1, 0, 0);
-    }
-    else if (sscanf(buffer, "/fcircley %d", &radius) == 1) {
+    } else if (sscanf(buffer, "/fcircley %d", &radius) == 1) {
         session->sphere(&block0, radius, 1, 0, 1, 0);
-    }
-    else if (sscanf(buffer, "/circley %d", &radius) == 1) {
+    } else if (sscanf(buffer, "/circley %d", &radius) == 1) {
         session->sphere(&block0, radius, 0, 0, 1, 0);
-    }
-    else if (sscanf(buffer, "/fcirclez %d", &radius) == 1) {
+    } else if (sscanf(buffer, "/fcirclez %d", &radius) == 1) {
         session->sphere(&block0, radius, 1, 0, 0, 1);
-    }
-    else if (sscanf(buffer, "/circlez %d", &radius) == 1) {
+    } else if (sscanf(buffer, "/circlez %d", &radius) == 1) {
         session->sphere(&block0, radius, 0, 0, 0, 1);
-    }
-    else if (sscanf(buffer, "/fcylinder %d", &radius) == 1) {
+    } else if (sscanf(buffer, "/fcylinder %d", &radius) == 1) {
         session->cylinder(&block0, &block1, radius, 1);
-    }
-    else if (sscanf(buffer, "/cylinder %d", &radius) == 1) {
+    } else if (sscanf(buffer, "/cylinder %d", &radius) == 1) {
         session->cylinder(&block0, &block1, radius, 0);
-    }
-    else {
+    } else {
         return false;
     }
     return true;

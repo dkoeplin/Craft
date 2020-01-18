@@ -3,39 +3,22 @@
 #include "GL/glew.h"
 
 #include "craft/draw/Item.h"
+#include "craft/draw/Shader.h"
 #include "craft/items/Item.h"
 #include "craft/support/matrix.h"
 #include "craft/util/Util.h"
-#include "craft/draw/Shader.h"
 
-void make_plant(
-        float *data, float ao, float light,
-        float px, float py, float pz, float n, int w, float rotation)
-{
-    static const float positions[4][4][3] = {
-            {{ 0, -1, -1}, { 0, -1, +1}, { 0, +1, -1}, { 0, +1, +1}},
-            {{ 0, -1, -1}, { 0, -1, +1}, { 0, +1, -1}, { 0, +1, +1}},
-            {{-1, -1,  0}, {-1, +1,  0}, {+1, -1,  0}, {+1, +1,  0}},
-            {{-1, -1,  0}, {-1, +1,  0}, {+1, -1,  0}, {+1, +1,  0}}
-    };
-    static const float normals[4][3] = {
-            {-1, 0, 0},
-            {+1, 0, 0},
-            {0, 0, -1},
-            {0, 0, +1}
-    };
-    static const float uvs[4][4][2] = {
-            {{0, 0}, {1, 0}, {0, 1}, {1, 1}},
-            {{1, 0}, {0, 0}, {1, 1}, {0, 1}},
-            {{0, 0}, {0, 1}, {1, 0}, {1, 1}},
-            {{1, 0}, {1, 1}, {0, 0}, {0, 1}}
-    };
-    static const float indices[4][6] = {
-            {0, 3, 2, 0, 1, 3},
-            {0, 3, 1, 0, 2, 3},
-            {0, 3, 2, 0, 1, 3},
-            {0, 3, 1, 0, 2, 3}
-    };
+void make_plant(float *data, float ao, float light, float px, float py, float pz, float n, int w, float rotation) {
+    static const float positions[4][4][3] = {{{0, -1, -1}, {0, -1, +1}, {0, +1, -1}, {0, +1, +1}},
+                                             {{0, -1, -1}, {0, -1, +1}, {0, +1, -1}, {0, +1, +1}},
+                                             {{-1, -1, 0}, {-1, +1, 0}, {+1, -1, 0}, {+1, +1, 0}},
+                                             {{-1, -1, 0}, {-1, +1, 0}, {+1, -1, 0}, {+1, +1, 0}}};
+    static const float normals[4][3] = {{-1, 0, 0}, {+1, 0, 0}, {0, 0, -1}, {0, 0, +1}};
+    static const float uvs[4][4][2] = {{{0, 0}, {1, 0}, {0, 1}, {1, 1}},
+                                       {{1, 0}, {0, 0}, {1, 1}, {0, 1}},
+                                       {{0, 0}, {0, 1}, {1, 0}, {1, 1}},
+                                       {{1, 0}, {1, 1}, {0, 0}, {0, 1}}};
+    static const float indices[4][6] = {{0, 3, 2, 0, 1, 3}, {0, 3, 1, 0, 2, 3}, {0, 3, 2, 0, 1, 3}, {0, 3, 1, 0, 2, 3}};
     float *d = data;
     float s = 0.0625;
     float a = 0;
@@ -76,6 +59,4 @@ GLuint gen_plant_buffer(float x, float y, float z, float n, int w) {
     return gen_faces(10, 4, data);
 }
 
-void draw_plant(Shader *attrib, GLuint buffer) {
-    draw_item(attrib, buffer, 24);
-}
+void draw_plant(Shader *attrib, GLuint buffer) { draw_item(attrib, buffer, 24); }

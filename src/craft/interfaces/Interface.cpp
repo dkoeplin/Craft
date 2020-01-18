@@ -2,15 +2,15 @@
 
 #include "GL/glew.h"
 
-#include "craft/player/Player.h"
 #include "craft/draw/Shader.h"
+#include "craft/items/Item.h"
+#include "craft/player/Player.h"
 #include "craft/session/Session.h"
 #include "craft/session/Window.h"
 #include "craft/support/matrix.h"
-#include "craft/items/Item.h"
 
-#include "craft/draw/Plant.h"
 #include "craft/draw/Cube.h"
+#include "craft/draw/Plant.h"
 #include "craft/util/Util.h"
 
 #include "craft/world/World.h"
@@ -30,18 +30,13 @@ void Interface::render_item(Shader *attrib, World *world, Player *player) {
         GLuint buffer = gen_plant_buffer(0, 0, 0, 0.5, w);
         draw_plant(attrib, buffer);
         del_buffer(buffer);
-    }
-    else {
+    } else {
         GLuint buffer = gen_cube_buffer(0, 0, 0, 0.5, w);
         draw_cube(attrib, buffer);
         del_buffer(buffer);
     }
 }
 
-bool Interface::is_key_pressed(const Key &key) {
-    return window->is_key_pressed(key);
-}
+bool Interface::is_key_pressed(const Key &key) { return window->is_key_pressed(key); }
 
-void Interface::close() {
-    session->close_interface(this);
-}
+void Interface::close() { session->close_interface(this); }

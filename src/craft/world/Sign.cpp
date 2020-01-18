@@ -5,23 +5,22 @@
 #include "GL/glew.h"
 
 #include "craft/draw/Character.h"
+#include "craft/draw/Shader.h"
 #include "craft/draw/Triangles.h"
 #include "craft/util/Util.h"
-#include "craft/draw/Shader.h"
 #include "craft/world/Chunk.h"
 
 int sign_list_remove(std::vector<Sign> &list, const Face &face) {
     auto begin = list.begin();
-    auto pend = std::remove_if(begin, list.end(), [&](Sign &sign){ return sign == face; });
+    auto pend = std::remove_if(begin, list.end(), [&](Sign &sign) { return sign == face; });
     return pend - begin;
 }
 
 int sign_list_remove_all(std::vector<Sign> &list, const ILoc3 &loc) {
     auto begin = list.begin();
-    auto pend = std::remove_if(begin, list.end(), [&](Sign &sign){ return sign.loc() == loc; });
+    auto pend = std::remove_if(begin, list.end(), [&](Sign &sign) { return sign.loc() == loc; });
     return pend - begin;
 }
-
 
 int _gen_sign_buffer(GLfloat *data, float x, float y, float z, int face, const char *text) {
     static const int glyph_dx[8] = {0, 0, -1, 1, 1, 0, -1, 0};
@@ -65,8 +64,7 @@ int _gen_sign_buffer(GLfloat *data, float x, float y, float z, int face, const c
             rx += dx * width / max_width / 2;
             rz += dz * width / max_width / 2;
             if (line[i] != ' ') {
-                make_character_3d(
-                        data + count * 30, rx, ry, rz, n / 2, face, line[i]);
+                make_character_3d(data + count * 30, rx, ry, rz, n / 2, face, line[i]);
                 count++;
             }
             rx += dx * width / max_width / 2;

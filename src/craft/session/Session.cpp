@@ -2,13 +2,13 @@
 
 #include <string>
 
-#include "curl/curl.h"
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
+#include "curl/curl.h"
 
 #include "craft/draw/Cube.h"
 #include "craft/draw/Render.h"
-#include "craft/player/Player.h"
+#include "craft/draw/Shader.h"
 #include "craft/interfaces/ChatInterface.h"
 #include "craft/interfaces/DebugInterface.h"
 #include "craft/interfaces/Interface.h"
@@ -16,15 +16,15 @@
 #include "craft/multiplayer/Auth.h"
 #include "craft/multiplayer/Client.h"
 #include "craft/physics/Physics.h"
+#include "craft/player/Player.h"
 #include "craft/session/Window.h"
 #include "craft/session/Worker.h"
 #include "craft/support/db.h"
-#include "craft/draw/Shader.h"
+#include "craft/util/Logging.h"
+#include "craft/util/Util.h"
 #include "craft/world/Chunk.h"
 #include "craft/world/State.h"
 #include "craft/world/World.h"
-#include "craft/util/Logging.h"
-#include "craft/util/Util.h"
 
 Session::Session() : WorldSession() {
     window_ = std::make_unique<Window>();
@@ -111,9 +111,8 @@ void Session::on_scroll(double dx, double dy) {
 
 void Session::on_mouse_button(int button, int action, int mods) {
     if (!window_->in_focus()) {
-       window_->focus();
-    }
-    else {
+        window_->focus();
+    } else {
         auto mbutton = static_cast<MouseButton>(button);
         auto maction = static_cast<MouseAction>(action);
         auto mmods = ButtonMods(mods);
@@ -140,8 +139,7 @@ void Session::mouse_movement(double dt) {
         }
         px = x;
         py = y;
-    }
-    else {
+    } else {
         first_update = false;
         window_->get_cursor_pos(px, py);
     }
@@ -165,9 +163,7 @@ void Session::init_database() {
     }
 }
 
-void Session::update_world_file(const char *file) {
-    snprintf(db_path, MAX_PATH_LENGTH, "%s", DB_PATH);
-}
+void Session::update_world_file(const char *file) { snprintf(db_path, MAX_PATH_LENGTH, "%s", DB_PATH); }
 
 void Session::update_server(const char *server, const char *port, bool changed) {
     server_changed = changed;
@@ -196,13 +192,11 @@ void Session::reconnect() {
             if (get_access_token(access_token, 128, username, identity_token)) {
                 printf("Successfully authenticated with the login server\n");
                 client->login(username, access_token);
-            }
-            else {
+            } else {
                 printf("Failed to authenticate with the login server\n");
                 client->login("", "");
             }
-        }
-        else {
+        } else {
             printf("Logging in anonymously\n");
             client->login("", "");
         }
@@ -367,13 +361,13 @@ void Session::create_chunk(Chunk *chunk) {
 
 void Session::force_chunks(Player *pl) {
     ChunkPos pos = pl->state.chunk();
-    pos.surrounding<1>([&](ChunkPos pos2){
-      if (auto *chunk = world->force_chunk(pos2)) {
-          if (chunk->unloaded)
-              create_chunk(chunk);
-          if (chunk->dirty)
-              gen_chunk_buffer(chunk);
-      }
+    pos.surrounding<1>([&](ChunkPos pos2) {
+        if (auto *chunk = world->force_chunk(pos2)) {
+            if (chunk->unloaded)
+                create_chunk(chunk);
+            if (chunk->dirty)
+                gen_chunk_buffer(chunk);
+        }
     });
 }
 
@@ -398,7 +392,11 @@ void Session::parse_buffer(char *buffer) {
         float ux, uy, uz, urx, ury;
         if (sscanf(line, "U,%d,%f,%f,%f,%f,%f", &pid, &ux, &uy, &uz, &urx, &ury) == 6) {
             player->id = pid;
-            state.x = ux; state.y = uy; state.z = uz; state.rx = urx; state.ry = ury;
+            state.x = ux;
+            state.y = uy;
+            state.z = uz;
+            state.rx = urx;
+            state.ry = ury;
             force_chunks(player);
             if (uy <= 0) {
                 state.y = world->highest_block(state.x, state.z) + 2;
@@ -406,15 +404,15 @@ void Session::parse_buffer(char *buffer) {
         }
         int bp, bq, bx, by, bz, bw;
         if (sscanf(line, "B,%d,%d,%d,%d,%d,%d", &bp, &bq, &bx, &by, &bz, &bw) == 6) {
-            Block block {{bx, by, bz}, bw};
+            Block block{{bx, by, bz}, bw};
             set_block({bp, bq}, block, false);
             if (player_intersects_block(2, player->state, block)) {
                 state.y = world->highest_block(state.x, state.z) + 2;
             }
         }
         if (sscanf(line, "L,%d,%d,%d,%d,%d,%d", &bp, &bq, &bx, &by, &bz, &bw) == 6) {
-            ChunkPos pos {bp, bq};
-            ILoc3 loc {bx, by, bz};
+            ChunkPos pos{bp, bq};
+            ILoc3 loc{bx, by, bz};
             set_light(pos, loc, bw);
         }
         float px, py, pz, prx, pry;
@@ -460,30 +458,22 @@ void Session::parse_buffer(char *buffer) {
                 strncpy(other->name, name, MAX_NAME_LENGTH);
             }
         }
-        snprintf(
-                format, sizeof(format),
-                "S,%%d,%%d,%%d,%%d,%%d,%%d,%%%d[^\n]", MAX_SIGN_LENGTH - 1);
+        snprintf(format, sizeof(format), "S,%%d,%%d,%%d,%%d,%%d,%%d,%%%d[^\n]", MAX_SIGN_LENGTH - 1);
         int face;
         char text[MAX_SIGN_LENGTH] = {0};
         if (sscanf(line, format, &bp, &bq, &bx, &by, &bz, &face, text) >= 6) {
-            Sign sign {{bx, by, bz, face}, text};
+            Sign sign{{bx, by, bz, face}, text};
             set_sign({bp, bq}, sign, false);
         }
         line = tokenize(nullptr, "\n", &key);
     }
 }
 
-void Session::render_sky(Shader *attrib, Player *p, int w, int h) {
-    world->render_sky(attrib, p, w, h);
-}
+void Session::render_sky(Shader *attrib, Player *p, int w, int h) { world->render_sky(attrib, p, w, h); }
 
-void Session::render_signs(Shader *attrib, Player *p, int w, int h) {
-    world->render_signs(attrib, p, w, h);
-}
+void Session::render_signs(Shader *attrib, Player *p, int w, int h) { world->render_signs(attrib, p, w, h); }
 
-void Session::render_players(Shader *attrib, Player *p, int w, int h) {
-    world->render_players(attrib, p, w, h);
-}
+void Session::render_players(Shader *attrib, Player *p, int w, int h) { world->render_players(attrib, p, w, h); }
 
 void Session::render_chunks(Shader *attrib, Player *p, int w, int h) {
     ensure_chunks(p);
@@ -508,8 +498,7 @@ void Session::logout() {
 void Session::login_user(char *username) {
     if (db->auth_select(username)) {
         reconnect();
-    }
-    else {
+    } else {
         add_message("Unknown username.");
     }
 }
@@ -517,26 +506,19 @@ void Session::login_user(char *username) {
 void Session::set_draw_distance(int radius) {
     if (radius >= 1 && radius <= 24) {
         player->set_draw_distance(radius);
-    }
-    else {
+    } else {
         add_message("Viewing distance must be between 1 and 24.");
     }
 }
 
-void Session::add_message(const char *text) {
-    chat->add_message(text);
-}
+void Session::add_message(const char *text) { chat->add_message(text); }
 
-void Session::talk(const char *text) {
-    client->talk(text);
-}
+void Session::talk(const char *text) { client->talk(text); }
 
 void Session::show_chat(bool cmd) { chat->show(cmd); }
 
 void Session::close_interface(Interface *iface) {
-    auto index = std::find_if(interfaces.begin(), interfaces.end(), [&](auto &i){
-        return i.get() == iface;
-    });
+    auto index = std::find_if(interfaces.begin(), interfaces.end(), [&](auto &i) { return i.get() == iface; });
     if (index != interfaces.end())
         interfaces.erase(index);
 }

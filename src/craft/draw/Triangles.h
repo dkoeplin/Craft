@@ -13,4 +13,4 @@ void draw_triangles_3d(Shader *attrib, GLuint buffer, int count);
 
 void draw_triangles_2d(Shader *attrib, GLuint buffer, int count);
 
-#endif //CRAFT_SRC_CRAFT_DRAW_TRIANGLES_H_
+#endif // CRAFT_SRC_CRAFT_DRAW_TRIANGLES_H_

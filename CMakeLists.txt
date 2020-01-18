@@ -2,9 +2,15 @@ cmake_minimum_required(VERSION 2.8)
 
 project(craft)
 
+find_program(CCACHE_FOUND ccache)
+if(CCACHE_FOUND)
+    SET_PROPERTY(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
+    SET_PROPERTY(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
+endif(CCACHE_FOUND)
+
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+
 add_subdirectory(src)
-message("Outer scope: ")
-message("${SOURCE_FILES}")
 
 add_executable(
     craft
@@ -41,7 +47,6 @@ include_directories(deps/lodepng)
 include_directories(deps/noise)
 include_directories(deps/sqlite)
 include_directories(deps/tinycthread)
-
 include_directories(src)
 
 if(MINGW)
@@ -54,17 +59,18 @@ endif()
 find_package(CURL REQUIRED)
 include_directories(${CURL_INCLUDE_DIR})
 
+include(AddFormatTargets)
+set(FORMAT_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/ ${CMAKE_CURRENT_SOURCE_DIR}/test/)
+add_format_targets("${FORMAT_SOURCES}" "${FORMAT_EXCLUDESOURCES}" "craft")
+
 if(APPLE)
-    target_link_libraries(craft glfw
-        ${GLFW_LIBRARIES} ${CURL_LIBRARIES})
+    target_link_libraries(craft glfw ${GLFW_LIBRARIES} ${CURL_LIBRARIES})
 endif()
 
 if(UNIX)
-    target_link_libraries(craft dl glfw
-        ${GLFW_LIBRARIES} ${CURL_LIBRARIES})
+    target_link_libraries(craft dl glfw ${GLFW_LIBRARIES} ${CURL_LIBRARIES})
 endif()
 
 if(MINGW)
-    target_link_libraries(craft ws2_32.lib glfw
-        ${GLFW_LIBRARIES} ${CURL_LIBRARIES})
+    target_link_libraries(craft ws2_32.lib glfw ${GLFW_LIBRARIES} ${CURL_LIBRARIES})
 endif()

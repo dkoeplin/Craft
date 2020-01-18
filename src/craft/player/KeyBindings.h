@@ -23,4 +23,4 @@ struct KeyBindings {
     Key Sign = Key::BackTick;
 };
 
-#endif //CRAFT_SRC_CRAFT_PLAYER_KEYBINDINGS_H_
+#endif // CRAFT_SRC_CRAFT_PLAYER_KEYBINDINGS_H_

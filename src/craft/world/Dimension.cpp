@@ -9,10 +9,6 @@ GLuint gen_sky_buffer() {
     return gen_buffer(sizeof(data), data);
 }
 
-Dimension::~Dimension() {
-    del_buffer(sky);
-}
+Dimension::~Dimension() { del_buffer(sky); }
 
-Earth::Earth() : Dimension() {
-    sky = gen_sky_buffer();
-}
+Earth::Earth() : Dimension() { sky = gen_sky_buffer(); }

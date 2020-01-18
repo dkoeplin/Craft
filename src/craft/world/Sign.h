@@ -3,9 +3,9 @@
 
 #define MAX_SIGN_LENGTH 64
 
+#include <string>
 #include <utility>
 #include <vector>
-#include <string>
 
 #include "craft/world/State.h"
 
@@ -27,6 +27,5 @@ int sign_list_remove_all(std::vector<Sign> &list, const ILoc3 &pos);
 void gen_sign_buffer(Chunk *chunk);
 
 void draw_signs(Shader *attrib, Chunk *chunk);
-
 
 #endif

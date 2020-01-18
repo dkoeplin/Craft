@@ -19,8 +19,7 @@ void WorldSession::unset_sign(const ILoc3 &pos) {
             chunk->dirty = true;
             db->delete_signs(pos);
         }
-    }
-    else {
+    } else {
         db->delete_signs(pos);
     }
 }
@@ -31,8 +30,7 @@ void WorldSession::unset_sign_face(const Face &face) {
             chunk->dirty = true;
             db->delete_sign(face);
         }
-    }
-    else {
+    } else {
         db->delete_sign(face);
     }
 }
@@ -46,8 +44,7 @@ void WorldSession::set_block(const ChunkPos &pos, const Block &block, bool dirty
             }
             db->insert_block(pos, block);
         }
-    }
-    else {
+    } else {
         db->insert_block(pos, block);
     }
     if (block.w == 0 && block.chunk() == pos) {
@@ -60,7 +57,7 @@ void WorldSession::set_block(const Block &block) {
     auto pos = block.chunk();
     set_block(pos, block, true);
     Block update(block.loc(), -block.w);
-    block.horizontal<1>([&](ILoc3 bpos2){
+    block.horizontal<1>([&](ILoc3 bpos2) {
         auto pos2 = bpos2.chunk();
         if (pos2 != pos)
             set_block(pos2, update, true);
@@ -177,16 +174,8 @@ void WorldSession::cube(Block *b1, Block *b2, int fill) {
 }
 
 void WorldSession::sphere(Block *center, int radius, int fill, int fx, int fy, int fz) {
-    static const float offsets[8][3] = {
-            {-0.5, -0.5, -0.5},
-            {-0.5, -0.5, 0.5},
-            {-0.5, 0.5, -0.5},
-            {-0.5, 0.5, 0.5},
-            {0.5, -0.5, -0.5},
-            {0.5, -0.5, 0.5},
-            {0.5, 0.5, -0.5},
-            {0.5, 0.5, 0.5}
-    };
+    static const float offsets[8][3] = {{-0.5, -0.5, -0.5}, {-0.5, -0.5, 0.5}, {-0.5, 0.5, -0.5}, {-0.5, 0.5, 0.5},
+                                        {0.5, -0.5, -0.5},  {0.5, -0.5, 0.5},  {0.5, 0.5, -0.5},  {0.5, 0.5, 0.5}};
     int cx = center->x;
     int cy = center->y;
     int cz = center->z;
@@ -212,8 +201,7 @@ void WorldSession::sphere(Block *center, int radius, int fill, int fx, int fy, i
                     float d = sqrtf(dx * dx + dy * dy + dz * dz);
                     if (d < radius) {
                         inside = 1;
-                    }
-                    else {
+                    } else {
                         outside = 1;
                     }
                 }

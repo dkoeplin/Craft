@@ -4,13 +4,14 @@
 
 #include "craft/player/Player.h"
 #include "craft/session/Window.h"
-#include "craft/world/State.h"
 #include "craft/util/Util.h"
+#include "craft/world/State.h"
 
 Matrix Matrix::get3D(int width, int height, Player *player, int radius) {
     auto &state = player->state;
     Matrix matrix = {};
-    set_matrix_3d(matrix.data, width, height, state.x, state.y, state.z, state.rx, state.ry, player->fov, player->ortho, radius);
+    set_matrix_3d(matrix.data, width, height, state.x, state.y, state.z, state.rx, state.ry, player->fov, player->ortho,
+                  radius);
     return matrix;
 }
 
@@ -26,7 +27,9 @@ Matrix Matrix::get3D(int width, int height, const State &state, float fov, int o
 
 void normalize(float *x, float *y, float *z) {
     float d = sqrtf((*x) * (*x) + (*y) * (*y) + (*z) * (*z));
-    *x /= d; *y /= d; *z /= d;
+    *x /= d;
+    *y /= d;
+    *z /= d;
 }
 
 void mat_identity(float *matrix) {
@@ -129,10 +132,14 @@ void mat_apply(float *data, float *matrix, int count, int offset, int stride) {
     float vec[4] = {0, 0, 0, 1};
     for (int i = 0; i < count; i++) {
         float *d = data + offset + stride * i;
-        vec[0] = *(d++); vec[1] = *(d++); vec[2] = *(d++);
+        vec[0] = *(d++);
+        vec[1] = *(d++);
+        vec[2] = *(d++);
         mat_vec_multiply(vec, matrix, vec);
         d = data + offset + stride * i;
-        *(d++) = vec[0]; *(d++) = vec[1]; *(d++) = vec[2];
+        *(d++) = vec[0];
+        *(d++) = vec[1];
+        *(d++) = vec[2];
     }
 }
 
@@ -166,10 +173,7 @@ void frustum_planes(float planes[6][4], int radius, float *matrix) {
     planes[5][3] = zfar * m[15] - m[14];
 }
 
-void mat_frustum(
-    float *matrix, float left, float right, float bottom,
-    float top, float znear, float zfar)
-{
+void mat_frustum(float *matrix, float left, float right, float bottom, float top, float znear, float zfar) {
     float temp, temp2, temp3, temp4;
     temp = 2.0 * znear;
     temp2 = right - left;
@@ -193,20 +197,14 @@ void mat_frustum(
     matrix[15] = 0.0;
 }
 
-void mat_perspective(
-    float *matrix, float fov, float aspect,
-    float znear, float zfar)
-{
+void mat_perspective(float *matrix, float fov, float aspect, float znear, float zfar) {
     float ymax, xmax;
     ymax = znear * tanf(fov * PI / 360.0);
     xmax = ymax * aspect;
     mat_frustum(matrix, -xmax, xmax, -ymax, ymax, znear, zfar);
 }
 
-void mat_ortho(
-    float *matrix,
-    float left, float right, float bottom, float top, float near, float far)
-{
+void mat_ortho(float *matrix, float left, float right, float bottom, float top, float near, float far) {
     matrix[0] = 2 / (right - left);
     matrix[1] = 0;
     matrix[2] = 0;
@@ -225,15 +223,10 @@ void mat_ortho(
     matrix[15] = 1;
 }
 
-void set_matrix_2d(float *matrix, int width, int height) {
-    mat_ortho(matrix, 0, width, 0, height, -1, 1);
-}
+void set_matrix_2d(float *matrix, int width, int height) { mat_ortho(matrix, 0, width, 0, height, -1, 1); }
 
-void set_matrix_3d(
-    float *matrix, int width, int height,
-    float x, float y, float z, float rx, float ry,
-    float fov, int ortho, int radius)
-{
+void set_matrix_3d(float *matrix, int width, int height, float x, float y, float z, float rx, float ry, float fov,
+                   int ortho, int radius) {
     float a[16];
     float b[16];
     float aspect = (float)width / height;
@@ -249,8 +242,7 @@ void set_matrix_3d(
     if (ortho) {
         int size = ortho;
         mat_ortho(b, -size * aspect, size * aspect, -size, size, -zfar, zfar);
-    }
-    else {
+    } else {
         mat_perspective(b, fov, aspect, znear, zfar);
     }
     mat_multiply(a, b, a);

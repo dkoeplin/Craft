@@ -1,7 +1,7 @@
 #include "Window.h"
 
-#include "GLFW/glfw3.h"
 #include "GL/glew.h"
+#include "GLFW/glfw3.h"
 
 #include "craft/interfaces/Keys.h"
 #include "craft/session/Session.h"
@@ -64,17 +64,11 @@ bool Window::init(Session *session) {
     return true;
 }
 
-bool Window::in_focus() {
-    return glfwGetInputMode(window_, GLFW_CURSOR) == GLFW_CURSOR_DISABLED;
-}
+bool Window::in_focus() { return glfwGetInputMode(window_, GLFW_CURSOR) == GLFW_CURSOR_DISABLED; }
 
-void Window::focus() {
-    glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-}
+void Window::focus() { glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_DISABLED); }
 
-void Window::defocus() {
-    glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-}
+void Window::defocus() { glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_NORMAL); }
 
 void Window::update() {
     glfwGetFramebufferSize(window_, &width_, &height_);

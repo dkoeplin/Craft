@@ -31,111 +31,107 @@ static cnd_t cnd;
 static mtx_t load_mtx;
 
 int Database::init(char *path) {
-    static const char *create_query =
-        "attach database 'auth.db' as auth;"
-        "create table if not exists auth.identity_token ("
-        "   username text not null,"
-        "   token text not null,"
-        "   selected int not null"
-        ");"
-        "create unique index if not exists auth.identity_token_username_idx"
-        "   on identity_token (username);"
-        "create table if not exists state ("
-        "   x float not null,"
-        "   y float not null,"
-        "   z float not null,"
-        "   rx float not null,"
-        "   ry float not null"
-        ");"
-        "create table if not exists block ("
-        "    p int not null,"
-        "    q int not null,"
-        "    x int not null,"
-        "    y int not null,"
-        "    z int not null,"
-        "    w int not null"
-        ");"
-        "create table if not exists light ("
-        "    p int not null,"
-        "    q int not null,"
-        "    x int not null,"
-        "    y int not null,"
-        "    z int not null,"
-        "    w int not null"
-        ");"
-        "create table if not exists key ("
-        "    p int not null,"
-        "    q int not null,"
-        "    key int not null"
-        ");"
-        "create table if not exists sign ("
-        "    p int not null,"
-        "    q int not null,"
-        "    x int not null,"
-        "    y int not null,"
-        "    z int not null,"
-        "    face int not null,"
-        "    text text not null"
-        ");"
-        "create unique index if not exists block_pqxyz_idx on block (p, q, x, y, z);"
-        "create unique index if not exists light_pqxyz_idx on light (p, q, x, y, z);"
-        "create unique index if not exists key_pq_idx on key (p, q);"
-        "create unique index if not exists sign_xyzface_idx on sign (x, y, z, face);"
-        "create index if not exists sign_pq_idx on sign (p, q);";
-    static const char *insert_block_query =
-        "insert or replace into block (p, q, x, y, z, w) "
-        "values (?, ?, ?, ?, ?, ?);";
-    static const char *insert_light_query =
-        "insert or replace into light (p, q, x, y, z, w) "
-        "values (?, ?, ?, ?, ?, ?);";
-    static const char *insert_sign_query =
-        "insert or replace into sign (p, q, x, y, z, face, text) "
-        "values (?, ?, ?, ?, ?, ?, ?);";
-    static const char *delete_sign_query =
-        "delete from sign where x = ? and y = ? and z = ? and face = ?;";
-    static const char *delete_signs_query =
-        "delete from sign where x = ? and y = ? and z = ?;";
-    static const char *load_blocks_query =
-        "select x, y, z, w from block where p = ? and q = ?;";
-    static const char *load_lights_query =
-        "select x, y, z, w from light where p = ? and q = ?;";
-    static const char *load_signs_query =
-        "select x, y, z, face, text from sign where p = ? and q = ?;";
-    static const char *get_key_query =
-        "select key from key where p = ? and q = ?;";
-    static const char *set_key_query =
-        "insert or replace into key (p, q, key) "
-        "values (?, ?, ?);";
+    static const char *create_query = "attach database 'auth.db' as auth;"
+                                      "create table if not exists auth.identity_token ("
+                                      "   username text not null,"
+                                      "   token text not null,"
+                                      "   selected int not null"
+                                      ");"
+                                      "create unique index if not exists auth.identity_token_username_idx"
+                                      "   on identity_token (username);"
+                                      "create table if not exists state ("
+                                      "   x float not null,"
+                                      "   y float not null,"
+                                      "   z float not null,"
+                                      "   rx float not null,"
+                                      "   ry float not null"
+                                      ");"
+                                      "create table if not exists block ("
+                                      "    p int not null,"
+                                      "    q int not null,"
+                                      "    x int not null,"
+                                      "    y int not null,"
+                                      "    z int not null,"
+                                      "    w int not null"
+                                      ");"
+                                      "create table if not exists light ("
+                                      "    p int not null,"
+                                      "    q int not null,"
+                                      "    x int not null,"
+                                      "    y int not null,"
+                                      "    z int not null,"
+                                      "    w int not null"
+                                      ");"
+                                      "create table if not exists key ("
+                                      "    p int not null,"
+                                      "    q int not null,"
+                                      "    key int not null"
+                                      ");"
+                                      "create table if not exists sign ("
+                                      "    p int not null,"
+                                      "    q int not null,"
+                                      "    x int not null,"
+                                      "    y int not null,"
+                                      "    z int not null,"
+                                      "    face int not null,"
+                                      "    text text not null"
+                                      ");"
+                                      "create unique index if not exists block_pqxyz_idx on block (p, q, x, y, z);"
+                                      "create unique index if not exists light_pqxyz_idx on light (p, q, x, y, z);"
+                                      "create unique index if not exists key_pq_idx on key (p, q);"
+                                      "create unique index if not exists sign_xyzface_idx on sign (x, y, z, face);"
+                                      "create index if not exists sign_pq_idx on sign (p, q);";
+    static const char *insert_block_query = "insert or replace into block (p, q, x, y, z, w) "
+                                            "values (?, ?, ?, ?, ?, ?);";
+    static const char *insert_light_query = "insert or replace into light (p, q, x, y, z, w) "
+                                            "values (?, ?, ?, ?, ?, ?);";
+    static const char *insert_sign_query = "insert or replace into sign (p, q, x, y, z, face, text) "
+                                           "values (?, ?, ?, ?, ?, ?, ?);";
+    static const char *delete_sign_query = "delete from sign where x = ? and y = ? and z = ? and face = ?;";
+    static const char *delete_signs_query = "delete from sign where x = ? and y = ? and z = ?;";
+    static const char *load_blocks_query = "select x, y, z, w from block where p = ? and q = ?;";
+    static const char *load_lights_query = "select x, y, z, w from light where p = ? and q = ?;";
+    static const char *load_signs_query = "select x, y, z, face, text from sign where p = ? and q = ?;";
+    static const char *get_key_query = "select key from key where p = ? and q = ?;";
+    static const char *set_key_query = "insert or replace into key (p, q, key) "
+                                       "values (?, ?, ?);";
     int rc;
     rc = sqlite3_open(path, &db);
-    if (rc) return rc;
+    if (rc)
+        return rc;
     rc = sqlite3_exec(db, create_query, NULL, NULL, NULL);
-    if (rc) return rc;
-    rc = sqlite3_prepare_v2(
-        db, insert_block_query, -1, &insert_block_stmt, NULL);
-    if (rc) return rc;
-    rc = sqlite3_prepare_v2(
-        db, insert_light_query, -1, &insert_light_stmt, NULL);
-    if (rc) return rc;
-    rc = sqlite3_prepare_v2(
-        db, insert_sign_query, -1, &insert_sign_stmt, NULL);
-    if (rc) return rc;
-    rc = sqlite3_prepare_v2(
-        db, delete_sign_query, -1, &delete_sign_stmt, NULL);
-    if (rc) return rc;
-    rc = sqlite3_prepare_v2(
-        db, delete_signs_query, -1, &delete_signs_stmt, NULL);
-    if (rc) return rc;
+    if (rc)
+        return rc;
+    rc = sqlite3_prepare_v2(db, insert_block_query, -1, &insert_block_stmt, NULL);
+    if (rc)
+        return rc;
+    rc = sqlite3_prepare_v2(db, insert_light_query, -1, &insert_light_stmt, NULL);
+    if (rc)
+        return rc;
+    rc = sqlite3_prepare_v2(db, insert_sign_query, -1, &insert_sign_stmt, NULL);
+    if (rc)
+        return rc;
+    rc = sqlite3_prepare_v2(db, delete_sign_query, -1, &delete_sign_stmt, NULL);
+    if (rc)
+        return rc;
+    rc = sqlite3_prepare_v2(db, delete_signs_query, -1, &delete_signs_stmt, NULL);
+    if (rc)
+        return rc;
     rc = sqlite3_prepare_v2(db, load_blocks_query, -1, &load_blocks_stmt, NULL);
-    if (rc) return rc;
+    if (rc)
+        return rc;
     rc = sqlite3_prepare_v2(db, load_lights_query, -1, &load_lights_stmt, NULL);
-    if (rc) return rc;
+    if (rc)
+        return rc;
     rc = sqlite3_prepare_v2(db, load_signs_query, -1, &load_signs_stmt, NULL);
-    if (rc) return rc;
+    if (rc)
+        return rc;
     rc = sqlite3_prepare_v2(db, get_key_query, -1, &get_key_stmt, NULL);
-    if (rc) return rc;
+    if (rc)
+        return rc;
     rc = sqlite3_prepare_v2(db, set_key_query, -1, &set_key_stmt, NULL);
-    if (rc) return rc;
+    if (rc)
+        return rc;
     sqlite3_exec(db, "begin;", NULL, NULL, NULL);
     Database::worker_start();
     return 0;
@@ -164,14 +160,11 @@ void Database::commit() {
     mtx_unlock(&mtx);
 }
 
-void _commit() {
-    sqlite3_exec(db, "commit; begin;", nullptr, nullptr, nullptr);
-}
+void _commit() { sqlite3_exec(db, "commit; begin;", nullptr, nullptr, nullptr); }
 
 void Database::auth_set(char *username, char *identity_token) {
-    static const char *query =
-        "insert or replace into auth.identity_token "
-        "(username, token, selected) values (?, ?, ?);";
+    static const char *query = "insert or replace into auth.identity_token "
+                               "(username, token, selected) values (?, ?, ?);";
     sqlite3_stmt *stmt;
     sqlite3_prepare_v2(db, query, -1, &stmt, nullptr);
     sqlite3_bind_text(stmt, 1, username, -1, nullptr);
@@ -184,8 +177,7 @@ void Database::auth_set(char *username, char *identity_token) {
 
 int Database::auth_select(char *username) {
     Database::auth_select_none();
-    static const char *query =
-        "update auth.identity_token set selected = 1 where username = ?;";
+    static const char *query = "update auth.identity_token set selected = 1 where username = ?;";
     sqlite3_stmt *stmt;
     sqlite3_prepare_v2(db, query, -1, &stmt, nullptr);
     sqlite3_bind_text(stmt, 1, username, -1, nullptr);
@@ -199,9 +191,8 @@ void Database::auth_select_none() {
 }
 
 int Database::auth_get(char *username, char *identity_token, int identity_token_length) {
-    static const char *query =
-        "select token from auth.identity_token "
-        "where username = ?;";
+    static const char *query = "select token from auth.identity_token "
+                               "where username = ?;";
     int result = 0;
     sqlite3_stmt *stmt;
     sqlite3_prepare_v2(db, query, -1, &stmt, nullptr);
@@ -216,13 +207,9 @@ int Database::auth_get(char *username, char *identity_token, int identity_token_
     return result;
 }
 
-int Database::auth_get_selected(
-    char *username, int username_length,
-    char *identity_token, int identity_token_length)
-{
-    static const char *query =
-        "select username, token from auth.identity_token "
-        "where selected = 1;";
+int Database::auth_get_selected(char *username, int username_length, char *identity_token, int identity_token_length) {
+    static const char *query = "select username, token from auth.identity_token "
+                               "where selected = 1;";
     int result = 0;
     sqlite3_stmt *stmt;
     sqlite3_prepare_v2(db, query, -1, &stmt, nullptr);
@@ -240,8 +227,7 @@ int Database::auth_get_selected(
 }
 
 void Database::save_state(float x, float y, float z, float rx, float ry) {
-    static const char *query =
-        "insert into state (x, y, z, rx, ry) values (?, ?, ?, ?, ?);";
+    static const char *query = "insert into state (x, y, z, rx, ry) values (?, ?, ?, ?, ?);";
     sqlite3_stmt *stmt;
     sqlite3_exec(db, "delete from state;", nullptr, nullptr, nullptr);
     sqlite3_prepare_v2(db, query, -1, &stmt, nullptr);
@@ -336,9 +322,7 @@ void Database::delete_signs(int x, int y, int z) {
     sqlite3_step(delete_signs_stmt);
 }
 
-void Database::delete_all_signs() {
-    sqlite3_exec(db, "delete from sign;", nullptr, nullptr, nullptr);
-}
+void Database::delete_all_signs() { sqlite3_exec(db, "delete from sign;", nullptr, nullptr, nullptr); }
 
 void Database::load_blocks(Map *map, int p, int q) {
     mtx_lock(&load_mtx);
@@ -440,21 +424,21 @@ int Database::worker_run(void *arg) {
         }
         mtx_unlock(&mtx);
         switch (e.type) {
-            case BLOCK:
-                Database::insert_block(e.p, e.q, e.x, e.y, e.z, e.w);
-                break;
-            case LIGHT:
-                Database::insert_light(e.p, e.q, e.x, e.y, e.z, e.w);
-                break;
-            case KEY:
-                Database::set_key(e.p, e.q, e.key);
-                break;
-            case COMMIT:
-                Database::commit();
-                break;
-            case EXIT:
-                running = 0;
-                break;
+        case BLOCK:
+            Database::insert_block(e.p, e.q, e.x, e.y, e.z, e.w);
+            break;
+        case LIGHT:
+            Database::insert_light(e.p, e.q, e.x, e.y, e.z, e.w);
+            break;
+        case KEY:
+            Database::set_key(e.p, e.q, e.key);
+            break;
+        case COMMIT:
+            Database::commit();
+            break;
+        case EXIT:
+            running = 0;
+            break;
         }
     }
     return 0;

@@ -7,28 +7,17 @@
 #include "craft/world/Chunk.h"
 #include "craft/world/State.h"
 
-
-
-void occlusion(
-        char neighbors[27], char lights[27], float shades[27],
-        float ao[6][4], float light[6][4])
-{
+void occlusion(char neighbors[27], char lights[27], float shades[27], float ao[6][4], float light[6][4]) {
     static const int lookup3[6][4][3] = {
-            {{0, 1, 3}, {2, 1, 5}, {6, 3, 7}, {8, 5, 7}},
-            {{18, 19, 21}, {20, 19, 23}, {24, 21, 25}, {26, 23, 25}},
-            {{6, 7, 15}, {8, 7, 17}, {24, 15, 25}, {26, 17, 25}},
-            {{0, 1, 9}, {2, 1, 11}, {18, 9, 19}, {20, 11, 19}},
-            {{0, 3, 9}, {6, 3, 15}, {18, 9, 21}, {24, 15, 21}},
-            {{2, 5, 11}, {8, 5, 17}, {20, 11, 23}, {26, 17, 23}}
-    };
-    static const int lookup4[6][4][4] = {
-            {{0, 1, 3, 4}, {1, 2, 4, 5}, {3, 4, 6, 7}, {4, 5, 7, 8}},
-            {{18, 19, 21, 22}, {19, 20, 22, 23}, {21, 22, 24, 25}, {22, 23, 25, 26}},
-            {{6, 7, 15, 16}, {7, 8, 16, 17}, {15, 16, 24, 25}, {16, 17, 25, 26}},
-            {{0, 1, 9, 10}, {1, 2, 10, 11}, {9, 10, 18, 19}, {10, 11, 19, 20}},
-            {{0, 3, 9, 12}, {3, 6, 12, 15}, {9, 12, 18, 21}, {12, 15, 21, 24}},
-            {{2, 5, 11, 14}, {5, 8, 14, 17}, {11, 14, 20, 23}, {14, 17, 23, 26}}
-    };
+        {{0, 1, 3}, {2, 1, 5}, {6, 3, 7}, {8, 5, 7}},         {{18, 19, 21}, {20, 19, 23}, {24, 21, 25}, {26, 23, 25}},
+        {{6, 7, 15}, {8, 7, 17}, {24, 15, 25}, {26, 17, 25}}, {{0, 1, 9}, {2, 1, 11}, {18, 9, 19}, {20, 11, 19}},
+        {{0, 3, 9}, {6, 3, 15}, {18, 9, 21}, {24, 15, 21}},   {{2, 5, 11}, {8, 5, 17}, {20, 11, 23}, {26, 17, 23}}};
+    static const int lookup4[6][4][4] = {{{0, 1, 3, 4}, {1, 2, 4, 5}, {3, 4, 6, 7}, {4, 5, 7, 8}},
+                                         {{18, 19, 21, 22}, {19, 20, 22, 23}, {21, 22, 24, 25}, {22, 23, 25, 26}},
+                                         {{6, 7, 15, 16}, {7, 8, 16, 17}, {15, 16, 24, 25}, {16, 17, 25, 26}},
+                                         {{0, 1, 9, 10}, {1, 2, 10, 11}, {9, 10, 18, 19}, {10, 11, 19, 20}},
+                                         {{0, 3, 9, 12}, {3, 6, 12, 15}, {9, 12, 18, 21}, {12, 15, 21, 24}},
+                                         {{2, 5, 11, 14}, {5, 8, 14, 17}, {11, 14, 20, 23}, {14, 17, 23, 26}}};
     static const float curve[4] = {0.0, 0.25, 0.5, 0.75};
     for (int i = 0; i < 6; i++) {
         for (int j = 0; j < 4; j++) {
@@ -97,9 +86,7 @@ float player_crosshair_distance(Player *p1, Player *p2) {
     return (s1->loc() - s2->loc() - vec).len();
 }
 
-Block hit_test(Map *map, float max_distance, bool use_prev,
-              const State &state, const Vec3<float> &vec)
-{
+Block hit_test(Map *map, float max_distance, bool use_prev, const State &state, const Vec3<float> &vec) {
     int m = 32;
     Vec3<float> step = vec / m;
     Vec3<float> current = state.loc();
@@ -161,8 +148,7 @@ Vec3<float> get_motion_vector(bool flying, int sz, int sx, float rx, float ry) {
         vec.x = cosf(rx + strafe) * m;
         vec.y = y;
         vec.z = sinf(rx + strafe) * m;
-    }
-    else {
+    } else {
         vec.x = cosf(rx + strafe);
         vec.y = 0;
         vec.z = sinf(rx + strafe);

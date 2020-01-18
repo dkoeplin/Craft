@@ -29,7 +29,7 @@ Chunk::~Chunk() {
     del_buffer(sign_buffer);
 }
 
-bool chunk_visible(Planes &planes, ChunkPos pos, int miny, int maxy, bool ortho) {
+bool chunk_visible(Planes &planes, const ChunkPos &pos, int miny, int maxy, bool ortho) {
     int x = pos.x * CHUNK_SIZE - 1;
     int z = pos.z * CHUNK_SIZE - 1;
     int d = CHUNK_SIZE + 1;

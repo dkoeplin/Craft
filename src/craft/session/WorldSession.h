@@ -16,15 +16,15 @@ struct WorldSession {
   WorldSession();
 
   /// World Editing
-  void unset_sign(const ILoc &pos);
+  void unset_sign(const ILoc3 &pos);
   void unset_sign_face(const Face &face);
 
   void builder_block(const Block &block);
   void set_block(const Block &block);
   void set_sign(const Sign &sign);
-  void set_light(const ChunkPos &pos, const ILoc &loc, int w);
+  void set_light(const ChunkPos &pos, const ILoc3 &loc, int w);
 
-  void toggle_light(const ILoc &loc);
+  void toggle_light(const ILoc3 &loc);
 
   /// Models
   void array(Block *b1, Block *b2, int xc, int yc, int zc);

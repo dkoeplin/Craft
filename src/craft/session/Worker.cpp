@@ -78,32 +78,25 @@ Chunk *Worker::update_chunk(World *world) {
 
 void Worker::ensure_chunks(Player *player) {
     State &s = player->state;
-    float matrix[16];
-    set_matrix_3d(
-            matrix, session->window()->width(), session->window()->height(),
-            s.x, s.y, s.z, s.rx, s.ry, player->fov, player->ortho, player->render_radius);
-    float planes[6][4];
-    frustum_planes(planes, player->render_radius, matrix);
-    int pos = s.chunk();
+    Matrix matrix = Matrix::get3D(session->window(), player, player->render_radius);
+    Planes planes = Planes::frustum(player->render_radius, matrix);
     int r = player->create_radius;
-    int start = 0x0fffffff;
+    int start = INT_MAX;
+    ChunkPos pos = s.chunk();
+    ChunkPos best;
     int best_score = start;
-    int best_a = 0;
-    int best_b = 0;
     for (int dp = -r; dp <= r; dp++) {
         for (int dq = -r; dq <= r; dq++) {
-            int a = pos.x + dp;
-            int b = pos.z + dq;
-            int cindex = (ABS(a) ^ ABS(b)) % WORKERS;
-            if (cindex != this->index) {
+            ChunkPos current {pos.x + dp, pos.z + dq};
+            if (current.hash(WORKERS) != this->index) {
                 continue;
             }
-            Chunk *chunk = session->world->find_chunk({a, b});
+            Chunk *chunk = session->world->find_chunk(current);
             if (chunk && !chunk->dirty) {
                 continue;
             }
             int distance = MAX(ABS(dp), ABS(dq));
-            int invisible = !chunk_visible(planes, a, b, 0, 256, player->ortho);
+            int invisible = !chunk_visible(planes, current, 0, 256, player->ortho);
             int priority = 0;
             if (chunk) {
                 priority = chunk->buffer && chunk->dirty;
@@ -111,17 +104,14 @@ void Worker::ensure_chunks(Player *player) {
             int score = (invisible << 24) | (priority << 16) | distance;
             if (score < best_score) {
                 best_score = score;
-                best_a = a;
-                best_b = b;
+                best = current;
             }
         }
     }
     if (best_score == start) {
         return;
     }
-    int a = best_a;
-    int b = best_b;
-    if (Chunk *chunk = session->world->force_chunk(a, b)) {
+    if (Chunk *chunk = session->world->force_chunk(best)) {
         bool load = chunk->unloaded;
         if (load) {
             chunk->unloaded = false;
@@ -129,26 +119,20 @@ void Worker::ensure_chunks(Player *player) {
         }
         item.pos = chunk->pos;
         item.load = load;
-        for (int dp = -1; dp <= 1; dp++) {
-            for (int dq = -1; dq <= 1; dq++) {
-                Chunk *other = chunk;
-                if (dp || dq) {
-                    other = session->world->find_chunk({chunk->pos.x + dp, chunk->pos.z + dq});
-                }
-                if (other) {
-                    Map *block_map = (Map *)malloc(sizeof(Map));
-                    Map *light_map = (Map *)malloc(sizeof(Map));
-                    map_copy(block_map, &other->map);
-                    map_copy(light_map, &other->lights);
-                    item.block_maps[dp + 1][dq + 1] = block_map;
-                    item.light_maps[dp + 1][dq + 1] = light_map;
-                }
-                else {
-                    item.block_maps[dp + 1][dq + 1] = nullptr;
-                    item.light_maps[dp + 1][dq + 1] = nullptr;
-                }
-            }
-        }
+        chunk->pos.surrounding<1>([&](ChunkPos pos2, int dx, int dz){
+          if (Chunk *other = session->world->find_chunk(pos2)) {
+              Map *block_map = (Map *)malloc(sizeof(Map));
+              Map *light_map = (Map *)malloc(sizeof(Map));
+              map_copy(block_map, &other->map);
+              map_copy(light_map, &other->lights);
+              item.block_maps[dx + 1][dz + 1] = block_map;
+              item.light_maps[dx + 1][dz + 1] = light_map;
+          }
+          else {
+              item.block_maps[dx + 1][dz + 1] = nullptr;
+              item.light_maps[dx + 1][dz + 1] = nullptr;
+          }
+        });
         chunk->dirty = false;
         state = Status::Busy;
         cnd_signal(&cnd);

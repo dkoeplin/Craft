@@ -32,8 +32,9 @@ set(SOURCE_FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/craft/world/Chunk.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/craft/world/Dimension.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/craft/world/Sign.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/craft/world/State.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/craft/world/World.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/craft/world/Vec.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/craft/world/Vec3.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
         PARENT_SCOPE
 )

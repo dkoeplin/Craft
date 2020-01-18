@@ -1,10 +1,10 @@
-#include <craft/player/Player.h>
 #include "ChatInterface.h"
 
 #include "craft/session/Session.h"
 #include "craft/session/Window.h"
 #include "craft/draw/Render.h"
 #include "craft/draw/Text.h"
+#include "craft/player/Player.h"
 #include "craft/world/World.h"
 
 ChatInterface::ChatInterface(Session *session, World *world)
@@ -104,11 +104,19 @@ void ChatInterface::paste() {
     int oy = p1->y - c1->y;
     int dx = ABS(c2->x - c1->x);
     int dz = ABS(c2->z - c1->z);
-    for (int y = 0; y < 256; y++) {
-        for (int x = 0; x <= dx; x++) {
-            for (int z = 0; z <= dz; z++) {
-                int w = world->get_block(c1->x + x * scx, y, c1->z + z * scz);
-                session->builder_block(p1->x + x * spx, y + oy, p1->z + z * spz, w);
+    ILoc3 loc;
+    for (loc.y = 0; loc.y < 256; ++loc.y) {
+        for (loc.x = 0; loc.x <= dx; ++loc.x) {
+            for (loc.z = 0; loc.z <= dz; ++loc.z) {
+                ILoc3 src;
+                src.x = c1->x + loc.x * scx;
+                src.y = loc.y;
+                src.z = c1->z + loc.z * scz;
+                Block block = world->get_block(src);
+                block.x = p1->x + loc.x * spx;
+                block.y = p1->y + oy;
+                block.z = p1->z + loc.z * spz;
+                session->builder_block(block);
             }
         }
     }

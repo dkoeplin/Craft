@@ -26,14 +26,14 @@ float player_player_distance(Player *p1, Player *p2);
 float player_crosshair_distance(Player *p1, Player *p2);
 
 Block hit_test(Map *map, float max_distance, bool use_prev,
-               const State &state, const Vec<float> &vec);
+               const State &state, const Vec3<float> &vec);
 
 bool player_intersects_block(int height, const State &state, const Block &block);
 
 bool collide(int height, State &state);
 
-Vec<float> get_sight_vector(float rx, float ry);
+Vec3<float> get_sight_vector(float rx, float ry);
 
-Vec<float> get_motion_vector(bool flying, int sz, int sx, float rx, float ry);
+Vec3<float> get_motion_vector(bool flying, int sz, int sx, float rx, float ry);
 
 #endif //CRAFT_SRC_CRAFT_PHYSICS_PHYSICS_H_

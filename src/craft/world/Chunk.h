@@ -5,7 +5,7 @@
 
 #include "craft/support/map.h"
 #include "craft/support/matrix.h"
-#include "craft/world/Vec.h"
+#include "craft/world/Vec3.h"
 #include "craft/world/Sign.h"
 
 #define MAX_CHUNKS 8192
@@ -17,7 +17,7 @@ struct Chunk;
 struct WorkerItem;
 struct World;
 
-bool chunk_visible(Planes &planes, ChunkPos pos, int miny, int maxy, bool ortho);
+bool chunk_visible(Planes &planes, const ChunkPos &pos, int miny, int maxy, bool ortho);
 
 struct Chunk {
   explicit Chunk(ChunkPos pos);

@@ -16,9 +16,9 @@ int sign_list_remove(std::vector<Sign> &list, const Face &face) {
     return pend - begin;
 }
 
-int sign_list_remove_all(std::vector<Sign> &list, const ILoc &pos) {
+int sign_list_remove_all(std::vector<Sign> &list, const ILoc3 &loc) {
     auto begin = list.begin();
-    auto pend = std::remove_if(begin, list.end(), [&](Sign &sign){ return sign == pos; });
+    auto pend = std::remove_if(begin, list.end(), [&](Sign &sign){ return sign.loc() == loc; });
     return pend - begin;
 }
 
@@ -90,14 +90,14 @@ void gen_sign_buffer(Chunk *chunk) {
     // first pass - count characters
     int max_faces = 0;
     for (auto &sign : signs) {
-        max_faces += strlen(sign.text);
+        max_faces += sign.text.size();
     }
 
     // second pass - generate geometry
     GLfloat *data = malloc_faces(5, max_faces);
     int faces = 0;
     for (auto &sign : signs) {
-        faces += _gen_sign_buffer(data + faces * 30, sign.x, sign.y, sign.z, sign.face, sign.text);
+        faces += _gen_sign_buffer(data + faces * 30, sign.x, sign.y, sign.z, sign.side, sign.text.c_str());
     }
 
     del_buffer(chunk->sign_buffer);

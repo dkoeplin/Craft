@@ -8,7 +8,7 @@ extern "C" {
 }
 
 #include "craft/support/map.h"
-#include "craft/world/Vec.h"
+#include "craft/world/Vec3.h"
 
 struct Chunk;
 struct Player;

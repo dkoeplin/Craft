@@ -64,7 +64,7 @@ bool WorldInterface::on_scroll(double dx, double dy) {
 bool WorldInterface::on_key_press(Key key, int scancode, ButtonMods mods) {
     bool control = mods.control() || mods.super();
     if (key == Key::Escape) {
-        window->defocus();
+        session->window()->defocus();
         return true;
     } else if (key == player->keys.Chat) {
         session->show_chat(/*cmd*/false);
@@ -146,7 +146,7 @@ bool WorldInterface::held_keys(double dt) {
     if (is_key_pressed(Key::Right)) state.rx += m;
     if (is_key_pressed(Key::Up)) state.ry += m;
     if (is_key_pressed(Key::Down)) state.ry -= m;
-    FVec vec = get_motion_vector(player->flying, sz, sx, state.rx, state.ry);
+    FVec3 vec = get_motion_vector(player->flying, sz, sx, state.rx, state.ry);
     if (is_key_pressed(player->keys.Jump)) {
         if (player->flying) {
             vec.y = 1;
@@ -168,16 +168,16 @@ bool WorldInterface::held_keys(double dt) {
 void WorldInterface::on_light() {
     Block block = world->hit_test(player->state);
     if (block.y > 0 && block.y < 256 && is_destructable(block.w)) {
-        session->toggle_light(block.x, block.y, block.z);
+        session->toggle_light(block);
     }
 }
 
 void WorldInterface::on_left_click() {
     Block block = world->hit_test(player->state);
     if (block.y > 0 && block.y < 256 && is_destructable(block.w)) {
-        session->set_block(block.x, block.y, block.z, 0);
-        if (is_plant(world->get_block(block.x, block.y + 1, block.z))) {
-            session->set_block(block.x, block.y + 1, block.z, 0);
+        session->set_block({block.loc(), 0});
+        if (is_plant(world->get_block_material(block))) {
+            session->set_block({block.loc(), 0});
         }
     }
 }
@@ -186,7 +186,7 @@ void WorldInterface::on_right_click() {
     Block block = world->hit_test(player->state);
     if (block.y > 0 && block.y < 256 && is_obstacle(block.w)) {
         if (!player_intersects_block(2, player->state, block)) {
-            session->set_block(block.x, block.y, block.z, items[player->item_index]);
+            session->set_block({block, items[player->item_index]});
         }
     }
 }
@@ -202,9 +202,9 @@ void WorldInterface::on_middle_click() {
 }
 
 bool WorldInterface::render(bool top) {
-    float height = window->height();
-    float width = window->width();
-    float scale = window->scale();
+    int height = window->height();
+    int width = window->width();
+    int scale = window->scale();
     float ts = 0.0f;
 
     // RENDER 3-D SCENE //
@@ -231,7 +231,7 @@ bool WorldInterface::render(bool top) {
 
     if (SHOW_PLAYER_NAMES) {
         if (target != player) {
-            render_text(window, Render::text(), Justify::Center, width / 2, ts, ts, target->name);
+            render_text(window, Render::text(), Justify::Center, width/2.0f, ts, ts, target->name);
         }
         if (auto *other = world->closest_player_in_view(target)) {
             render_text(window, Render::text(), Justify::Center,

@@ -1,8 +1,9 @@
 #ifndef _matrix_h_
 #define _matrix_h_
 
-#include "craft/player/Player.h"
-#include "craft/world/State.h"
+struct Player;
+struct State;
+struct Window;
 
 void normalize(float *x, float *y, float *z);
 void mat_identity(float *matrix);
@@ -25,26 +26,18 @@ void set_matrix_2d(float *matrix, int width, int height);
 void set_matrix_3d(
     float *matrix, int width, int height,
     float x, float y, float z, float rx, float ry,
-    float fov, bool ortho, int radius);
+    float fov, int ortho, int radius);
 void set_matrix_item(float *matrix, int width, int height, int scale);
 
 struct Matrix {
  public:
-  static Matrix get3D(int width, int height, const State &state, float fov, bool ortho, int radius) {
-      Matrix matrix = {};
-      set_matrix_3d(matrix.data, width, height, state.x, state.y, state.z, state.rx, state.ry, fov, ortho, radius);
-      return matrix;
-  }
-  static Matrix get3D(int width, int height, Player *player, int radius) {
-      auto &state = player->state;
-      Matrix matrix = {};
-      set_matrix_3d(matrix.data, width, height, state.x, state.y, state.z, state.rx, state.ry, player->fov, player->ortho, radius);
-      return matrix;
-  }
+  static Matrix get3D(Window *window, Player *player, int radius);
+  static Matrix get3D(int width, int height, const State &state, float fov, int ortho, int radius);
+  static Matrix get3D(int width, int height, Player *player, int radius);
 
   Matrix() = default;
 
-  float[16] data;
+  float data[16];
 };
 
 struct Planes {
@@ -57,7 +50,7 @@ struct Planes {
 
   float &operator()(int i, int j) { return data[i][j]; }
 
-  float[6][4] data;
+  float data[6][4];
 };
 
 #endif

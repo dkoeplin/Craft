@@ -47,7 +47,7 @@ bool Window::init(Session *session) {
     glfwMakeContextCurrent(window_);
     glfwSwapInterval(VSYNC);
     glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    glfwSetWindowUserPointer(window_, this);
+    glfwSetWindowUserPointer(window_, session);
     glfwSetKeyCallback(window_, ::on_key);
     glfwSetCharCallback(window_, ::on_char);
     glfwSetMouseButtonCallback(window_, ::on_mouse_button);
@@ -64,21 +64,8 @@ bool Window::init(Session *session) {
     return true;
 }
 
-void Window::update() {
-    update_scale_factor();
-    glfwGetFramebufferSize(window_, &width_, &height_);
-    glViewport(0, 0, width_, height_);
-}
-
-void Window::update_scale_factor() {
-    int window_width, window_height;
-    int buffer_width, buffer_height;
-    glfwGetWindowSize(window_, &window_width, &window_height);
-    glfwGetFramebufferSize(window_, &buffer_width, &buffer_height);
-    int result = buffer_width / window_width;
-    result = MAX(1, result);
-    result = MIN(2, result);
-    scale_ = result;
+bool Window::in_focus() {
+    return glfwGetInputMode(window_, GLFW_CURSOR) == GLFW_CURSOR_DISABLED;
 }
 
 void Window::focus() {
@@ -86,13 +73,19 @@ void Window::focus() {
 }
 
 void Window::defocus() {
-    if (in_focus()) {
-        glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-    }
+    glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 }
 
-bool Window::in_focus() {
-    return glfwGetInputMode(window_, GLFW_CURSOR) == GLFW_CURSOR_DISABLED;
+void Window::update() {
+    glfwGetFramebufferSize(window_, &width_, &height_);
+    glViewport(0, 0, width_, height_);
+
+    int window_width, window_height;
+    glfwGetWindowSize(window_, &window_width, &window_height);
+    int result = width_ / window_width;
+    result = MAX(1, result);
+    result = MIN(2, result);
+    scale_ = result;
 }
 
 const char *Window::clipboard() { return glfwGetClipboardString(window_); }

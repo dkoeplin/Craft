@@ -123,12 +123,21 @@ float World::get_daylight() {
     }
 }
 
-int World::get_block(const ILoc &pos) {
+int World::get_block_material(const ILoc3 &pos) {
     if (Chunk *chunk = find_chunk(pos.chunk())) {
         Map *map = &chunk->map;
         return map_get(map, pos.x, pos.y, pos.z);
     }
     return 0;
+}
+
+Block World::get_block(const ILoc3 &pos) {
+    Block block(pos, 0);
+    if (Chunk *chunk = find_chunk(pos.chunk())) {
+        Map *map = &chunk->map;
+        block.w = map_get(map, pos.x, pos.y, pos.z);
+    }
+    return block;
 }
 
 Chunk *World::find_chunk(const ChunkPos &pos) {
@@ -279,9 +288,9 @@ Block World::hit_test(const State &state, bool use_prev) {
     Block result;
     float best = 0;
     auto cpos = state.chunk();
-    Vec<float> v = get_sight_vector(state.rx, state.ry);
+    Vec3<float> v = get_sight_vector(state.rx, state.ry);
     for (auto &chunk : chunks) {
-        if (chunk_distance(chunk.get()->pos, cpos) > 1) {
+        if (chunk_distance(chunk->pos, cpos) > 1) {
             continue;
         }
         if (auto block = ::hit_test(&chunk->map, 8, use_prev, state, v)) {
@@ -300,7 +309,7 @@ BlockFace World::hit_test_face(const State &state) {
     int face = -1;
     if (is_obstacle(b.w)) {
         Block b2 = hit_test(state, true);
-        Vec<int> delta = b2 - b;
+        Vec3<int> delta = b2 - b;
 
         if (delta == Left) {
             face = 0;
@@ -390,10 +399,7 @@ void World::delete_chunks(const std::vector<Player *> &observers) {
     auto pend = std::remove_if(chunks.begin(), chunks.end(), [&](auto &chunk){
       bool should_delete = true;
       for (auto *v : observers) {
-          State *s = &v->state;
-          int p = chunked(s->x);
-          int q = chunked(s->z);
-          if (chunk_distance(chunk.get(), p, q) < v->delete_radius) {
+          if (chunk_distance(chunk->pos, v->state.chunk()) < v->delete_radius) {
               should_delete = false;
               break;
           }

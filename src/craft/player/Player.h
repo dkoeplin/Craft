@@ -24,8 +24,8 @@ struct Player {
   int id;
   char name[MAX_NAME_LENGTH];
   State state;
-  FVec velocity;
-  FVec accel;
+  FVec3 velocity;
+  FVec3 accel;
   int step = 1;
   // Saved states (used for interpolation)
   State state1;

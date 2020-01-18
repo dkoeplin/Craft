@@ -91,22 +91,22 @@ float player_crosshair_distance(Player *p1, Player *p2) {
     State *s1 = &p1->state;
     State *s2 = &p2->state;
 
-    Vec<float> vec = get_sight_vector(s1->rx, s1->ry);
+    Vec3<float> vec = get_sight_vector(s1->rx, s1->ry);
     vec *= player_player_distance(p1, p2);
 
     return (s1->loc() - s2->loc() - vec).len();
 }
 
 Block hit_test(Map *map, float max_distance, bool use_prev,
-              const State &state, const Vec<float> &vec)
+              const State &state, const Vec3<float> &vec)
 {
     int m = 32;
-    Vec<float> step = vec / m;
-    Vec<float> current = state.loc();
+    Vec3<float> step = vec / m;
+    Vec3<float> current = state.loc();
 
-    Vec<int> previous;
+    Vec3<int> previous;
     for (int i = 0; i < max_distance * m; i++) {
-        Vec<int> next = current.round();
+        Vec3<int> next = current.round();
         if (next != previous) {
             int hw = map_get(map, next.x, next.y, next.z);
             if (hw > 0) {
@@ -131,17 +131,17 @@ bool player_intersects_block(int height, const State &state, const Block &block)
     return false;
 }
 
-Vec<float> get_sight_vector(float rx, float ry) {
+Vec3<float> get_sight_vector(float rx, float ry) {
     float m = cosf(ry);
-    Vec<float> vec;
+    Vec3<float> vec;
     vec.x = cosf(rx - RADIANS(90)) * m;
     vec.y = sinf(ry);
     vec.z = sinf(rx - RADIANS(90)) * m;
     return vec;
 }
 
-Vec<float> get_motion_vector(bool flying, int sz, int sx, float rx, float ry) {
-    Vec<float> vec;
+Vec3<float> get_motion_vector(bool flying, int sz, int sx, float rx, float ry) {
+    Vec3<float> vec;
     if (!sz && !sx) {
         return vec;
     }

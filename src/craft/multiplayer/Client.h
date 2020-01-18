@@ -2,6 +2,7 @@
 #define _client_h_
 
 #include "craft/world/State.h"
+#include "craft/world/Sign.h"
 
 struct Client {
  public:
@@ -14,9 +15,19 @@ struct Client {
   void login(const char *username, const char *identity_token);
   void position(State &state);
   void chunk(int p, int q, int key);
+  void chunk(const ChunkPos &pos, int key) {
+      return chunk(pos.x, pos.z, key);
+  }
+
   void block(int x, int y, int z, int w);
+  void block(const Block &b) { block(b.x, b.y, b.z, b.w); }
+
   void light(int x, int y, int z, int w);
+  void light(const ILoc3 &loc, int w) { light(loc.x, loc.y, loc.z, w); }
+
   void sign(int x, int y, int z, int face, const char *text);
+  void sign(const Sign &s) { sign(s.x, s.y, s.z, s.side, s.text.c_str()); }
+
   void talk(const char *text);
 
  private:

@@ -111,7 +111,7 @@ void Session::on_scroll(double dx, double dy) {
 
 void Session::on_mouse_button(int button, int action, int mods) {
     if (!window_->in_focus()) {
-        window_->focus();
+       window_->focus();
     }
     else {
         auto mbutton = static_cast<MouseButton>(button);
@@ -374,7 +374,7 @@ void Session::force_chunks(Player *pl) {
           if (chunk->dirty)
               gen_chunk_buffer(chunk);
       }
-    })
+    });
 }
 
 void Session::ensure_chunks(Player *p) {
@@ -413,7 +413,9 @@ void Session::parse_buffer(char *buffer) {
             }
         }
         if (sscanf(line, "L,%d,%d,%d,%d,%d,%d", &bp, &bq, &bx, &by, &bz, &bw) == 6) {
-            set_light(bp, bq, bx, by, bz, bw);
+            ChunkPos pos {bp, bq};
+            ILoc3 loc {bx, by, bz};
+            set_light(pos, loc, bw);
         }
         float px, py, pz, prx, pry;
         if (sscanf(line, "P,%d,%f,%f,%f,%f,%f", &pid, &px, &py, &pz, &prx, &pry) == 6) {
@@ -435,7 +437,7 @@ void Session::parse_buffer(char *buffer) {
             db->set_key(kp, kq, kk);
         }
         if (sscanf(line, "R,%d,%d", &kp, &kq) == 2) {
-            if (Chunk *chunk = world->find_chunk(kp, kq)) {
+            if (Chunk *chunk = world->find_chunk({kp, kq})) {
                 world->mark_chunk_dirty(chunk);
             }
         }

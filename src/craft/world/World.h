@@ -40,7 +40,8 @@ struct World {
 
   /// Blocks
   int highest_block(int x, int z);
-  int get_block(const ILoc &pos);
+  int get_block_material(const ILoc3 &pos);
+  Block get_block(const ILoc3 &pos);
 
   Player *closest_player_in_view(Player *player);
 
@@ -68,5 +69,8 @@ struct World {
 typedef void (*world_func)(int, int, int, int, void *);
 
 void create_world(int p, int q, world_func func, void *arg);
+inline void create_world(const ChunkPos &pos, world_func func, void *arg) {
+    create_world(pos.x, pos.z, func, arg);
+}
 
 #endif

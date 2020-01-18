@@ -13,7 +13,7 @@ WorldSession::WorldSession() {
     client = std::make_unique<Client>();
 }
 
-void WorldSession::unset_sign(const ILoc &pos) {
+void WorldSession::unset_sign(const ILoc3 &pos) {
     if (auto *chunk = world->find_chunk(pos.chunk())) {
         if (sign_list_remove_all(chunk->signs, pos)) {
             chunk->dirty = true;
@@ -40,7 +40,7 @@ void WorldSession::unset_sign_face(const Face &face) {
 void WorldSession::set_block(const ChunkPos &pos, const Block &block, bool dirty) {
     if (auto *chunk = world->find_chunk(pos)) {
         Map *map = &chunk->map;
-        if (map_set(map, block)) {
+        if (map_set(map, block.x, block.y, block.z, block.w)) {
             if (dirty) {
                 world->mark_chunk_dirty(chunk);
             }
@@ -60,7 +60,7 @@ void WorldSession::set_block(const Block &block) {
     auto pos = block.chunk();
     set_block(pos, block, true);
     Block update(block.loc(), -block.w);
-    block.horizontal<1>([&](ILoc bpos2){
+    block.horizontal<1>([&](ILoc3 bpos2){
         auto pos2 = bpos2.chunk();
         if (pos2 != pos)
             set_block(pos2, update, true);
@@ -72,7 +72,7 @@ void WorldSession::builder_block(const Block &block) {
     if (block.y <= 0 || block.y >= 256) {
         return;
     }
-    if (is_destructable(world->get_block(block))) {
+    if (is_destructable(world->get_block_material(block))) {
         set_block({block.loc(), 0});
     }
     if (block) {
@@ -82,7 +82,7 @@ void WorldSession::builder_block(const Block &block) {
 
 void WorldSession::set_sign(const ChunkPos &pos, const Sign &sign, bool dirty) {
     if (!sign) {
-        unset_sign_face(sign);
+        unset_sign_face(sign.face());
         return;
     }
     if (auto *chunk = world->find_chunk(pos)) {
@@ -99,22 +99,22 @@ void WorldSession::set_sign(const Sign &sign) {
     client->sign(sign);
 }
 
-void WorldSession::toggle_light(const ILoc &loc) {
+void WorldSession::toggle_light(const ILoc3 &loc) {
     auto pos = loc.chunk();
     if (Chunk *chunk = world->find_chunk(pos)) {
         Map *map = &chunk->lights;
-        int w = map_get(map, pos) ? 0 : 15;
-        map_set(map, {pos, w});
-        db->insert_light(pos, pos, w);
-        client->light(pos, w);
+        int w = map_get(map, loc.x, loc.y, pos.z) ? 0 : 15;
+        map_set(map, loc.x, loc.y, loc.z, w);
+        db->insert_light(pos.x, pos.z, loc.x, loc.y, loc.z, w);
+        client->light(loc.x, loc.y, loc.z, w);
         world->mark_chunk_dirty(chunk);
     }
 }
 
-void WorldSession::set_light(const ChunkPos &pos, const ILoc &loc, int w) {
+void WorldSession::set_light(const ChunkPos &pos, const ILoc3 &loc, int w) {
     if (Chunk *chunk = world->find_chunk(pos)) {
         Map *map = &chunk->lights;
-        if (map_set(map, loc, w)) {
+        if (map_set(map, loc.x, loc.y, loc.z, w)) {
             world->mark_chunk_dirty(chunk);
             db->insert_light(pos, loc, w);
         }

@@ -379,9 +379,8 @@ void Database::load_signs(std::vector<Sign> &list, int p, int q) {
         sign.x = sqlite3_column_int(load_signs_stmt, 0);
         sign.y = sqlite3_column_int(load_signs_stmt, 1);
         sign.z = sqlite3_column_int(load_signs_stmt, 2);
-        sign.face = sqlite3_column_int(load_signs_stmt, 3);
-        auto *text = (const char *)sqlite3_column_text(load_signs_stmt, 4);
-        strncpy(sign.text, text, MAX_SIGN_LENGTH);
+        sign.side = sqlite3_column_int(load_signs_stmt, 3);
+        sign.text = (const char *)sqlite3_column_text(load_signs_stmt, 4);
         list.push_back(sign);
     }
 }

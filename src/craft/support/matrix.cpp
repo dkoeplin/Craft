@@ -1,7 +1,28 @@
 #include "craft/support/matrix.h"
 
 #include <cmath>
+
+#include "craft/player/Player.h"
+#include "craft/session/Window.h"
+#include "craft/world/State.h"
 #include "craft/util/Util.h"
+
+Matrix Matrix::get3D(int width, int height, Player *player, int radius) {
+    auto &state = player->state;
+    Matrix matrix = {};
+    set_matrix_3d(matrix.data, width, height, state.x, state.y, state.z, state.rx, state.ry, player->fov, player->ortho, radius);
+    return matrix;
+}
+
+Matrix Matrix::get3D(Window *window, Player *player, int radius) {
+    return Matrix::get3D(window->width(), window->height(), player, radius);
+}
+
+Matrix Matrix::get3D(int width, int height, const State &state, float fov, int ortho, int radius) {
+    Matrix matrix = {};
+    set_matrix_3d(matrix.data, width, height, state.x, state.y, state.z, state.rx, state.ry, fov, ortho, radius);
+    return matrix;
+}
 
 void normalize(float *x, float *y, float *z) {
     float d = sqrtf((*x) * (*x) + (*y) * (*y) + (*z) * (*z));

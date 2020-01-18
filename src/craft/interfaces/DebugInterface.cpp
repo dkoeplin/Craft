@@ -6,19 +6,10 @@
 #include "craft/draw/Text.h"
 #include "craft/player/Player.h"
 #include "craft/session/Session.h"
-#include "craft/session/Window.h"
 #include "craft/world/World.h"
 
 DebugInterface::DebugInterface(Session *session, World *world, Player *player)
     : Interface(session), world(world), player(player) {}
-
-bool DebugInterface::on_key_press(Key key, int scancode, ButtonMods mods) {
-    if (key == Key::Escape) {
-        close();
-        return true;
-    }
-    return false;
-}
 
 bool DebugInterface::tick(double dt) {
     frames++;
@@ -46,5 +37,12 @@ bool DebugInterface::render(bool top) {
     snprintf(text_buffer, 1024, "(%d, %d) (%.2f, %.2f, %.2f) [%zu, %d, %d] %d%cm %dfps", chunked(s.x), chunked(s.z),
              s.x, s.y, s.z, world->player_count(), world->chunk_count(), window->face_count() * 2, hour, am_pm, fps);
     render_text(window, Render::text(), Justify::Left, tx, ty, ts, text_buffer);
+
+    auto &v = player->velocity;
+    auto &a = player->accel;
+    auto vm = v.len();
+    auto am = a.len();
+    snprintf(text_buffer, 1024, "v: %.2f (%.2f, %.2f, %.2f) a: %.2f (%.2f, %.2f, %.2f)", vm, v.x, v.y, v.z, am, a.x, a.y, a.z);
+    render_text(window, Render::text(), Justify::Left, tx, ty - 2*ts, ts, text_buffer);
     return false;
 }

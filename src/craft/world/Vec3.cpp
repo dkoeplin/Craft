@@ -48,6 +48,14 @@ template <typename Index> Vec3<Index> Vec3<Index>::operator/(int divisor) const 
     return result;
 }
 
+template <typename Index> Vec3<Index> Vec3<Index>::operator/(float divisor) const {
+    Vec3<Index> result;
+    result.x = x / divisor;
+    result.y = y / divisor;
+    result.z = z / divisor;
+    return result;
+}
+
 template <typename Index> Vec3<Index> Vec3<Index>::operator*(float scale) const {
     Vec3<Index> result;
     result.x = x * scale;
@@ -73,6 +81,15 @@ template <typename Index> Vec3<Index> Vec3<Index>::abs() const {
 }
 
 template <typename Index> float Vec3<Index>::len() const { return sqrtf(x * x + y * y + z * z); }
+
+template <typename Index> void Vec3<Index>::normalize() {
+    float l = len();
+    if (l != 0) {
+        x /= l;
+        y /= l;
+        z /= l;
+    }
+}
 
 template <typename Index> ChunkPos Vec3<Index>::chunk() const { return {chunked(x), chunked(z)}; }
 

@@ -24,7 +24,6 @@ struct Player {
     State state;
     FVec3 velocity;
     FVec3 accel;
-    int step = 1;
     // Saved states (used for interpolation)
     State state1;
     State state2;
@@ -32,7 +31,7 @@ struct Player {
     KeyBindings keys;
     bool flying = false;
     int ortho = 0;
-    float fov = 65.0f;
+    float fov = 75.0f;
     int item_index = 0;
 
     /// Rendering options

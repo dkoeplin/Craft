@@ -15,7 +15,7 @@
 
 /// Speed
 #define FLYING_SPEED 20
-#define WALKING_SPEED 5
+#define WALKING_SPEED 3
 
 struct Player;
 struct Session;
@@ -23,6 +23,9 @@ struct World;
 
 struct WorldInterface : public Interface {
   public:
+    static std::string name() { return "World"; }
+    std::string get_name() const override { return name(); }
+
     explicit WorldInterface(Session *session, World *world, Player *player);
 
     bool on_scroll(double dx, double dy) override;

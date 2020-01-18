@@ -11,7 +11,10 @@ struct World;
 
 struct ChatInterface : public Interface {
   public:
-    ChatInterface(Session *session, World *world);
+    static std::string name() { return "Chat"; }
+    std::string get_name() const override { return name(); }
+
+    ChatInterface(Session *session, World *world, Player *player);
 
     bool on_char(uint32_t u) override;
     bool on_key_press(Key key, int scancode, ButtonMods mods) override;
@@ -37,6 +40,7 @@ struct ChatInterface : public Interface {
     void copy();
     void paste();
 
+    Player *player;
     World *world;
 
     /// Copy Pasting

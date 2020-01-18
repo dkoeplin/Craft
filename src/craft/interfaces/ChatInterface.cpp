@@ -4,11 +4,10 @@
 #include "craft/draw/Text.h"
 #include "craft/player/Player.h"
 #include "craft/session/Session.h"
-#include "craft/session/Window.h"
 #include "craft/world/World.h"
 
-ChatInterface::ChatInterface(Session *session, World *world)
-    : Interface(session), world(world), typing_buffer{0}, messages{{0}} {
+ChatInterface::ChatInterface(Session *session, World *world, Player *player)
+    : Interface(session), world(world), player(player), typing_buffer{0}, messages{{0}} {
     memset(typing_buffer, 0, sizeof(char) * MAX_TEXT_LENGTH);
     memset(messages, 0, sizeof(char) * MAX_MESSAGES * MAX_TEXT_LENGTH);
 }
@@ -20,18 +19,22 @@ void ChatInterface::add_message(const char *text) {
 }
 
 bool ChatInterface::on_char(uint32_t u) {
-    if (u >= 32 && u < 128) {
+    if (visible && u >= 32 && u < 128) {
         char c = (char)u;
         int n = strlen(typing_buffer);
         if (n < MAX_TEXT_LENGTH - 1) {
             typing_buffer[n] = c;
             typing_buffer[n + 1] = '\0';
         }
+        return true;
     }
-    return true;
+    return false;
 }
 
 bool ChatInterface::on_key_press(Key key, int scancode, ButtonMods mods) {
+    if (!visible)
+        return false;
+
     bool control = mods.control() || mods.super();
     if (key == Key::Backspace) {
         int n = strlen(typing_buffer);
@@ -48,15 +51,15 @@ bool ChatInterface::on_key_press(Key key, int scancode, ButtonMods mods) {
                 typing_buffer[n + 1] = '\0';
             }
         } else if (typing_buffer[0] == '/') {
-            if (!parse_command(typing_buffer)) {
-                session->talk(typing_buffer);
-            }
+            parse_command(typing_buffer);
+            typing_buffer[0] = '\0';
         } else {
             session->talk(typing_buffer);
+            typing_buffer[0] = '\0';
         }
     } else if (control && key == Key::V) {
         const char *buffer = window->clipboard();
-        session->suppress_char();
+        session->suppress_next_char();
         strncat(typing_buffer, buffer, MAX_TEXT_LENGTH - strlen(typing_buffer) - 1);
     }
     return true;
@@ -127,7 +130,11 @@ bool ChatInterface::parse_command(const char *buffer) {
     char server_port[MAX_ADDR_LENGTH];
     char filename[MAX_PATH_LENGTH];
     int radius, count, xc, yc, zc;
-    if (sscanf(buffer, "/identity %128s %128s", username, token) == 2) {
+    if (sscanf(buffer, "/reset") == 0) {
+        float y = world->highest_block(0, 0);
+        player->state.set_pos({0, y + 2, 0});
+        session->add_message("Reset player to {0,0}");
+    } else if (sscanf(buffer, "/identity %128s %128s", username, token) == 2) {
         session->set_identity(username, token);
     } else if (strcmp(buffer, "/logout") == 0) {
         session->logout();

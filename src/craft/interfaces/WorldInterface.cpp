@@ -8,6 +8,7 @@
 #include "craft/draw/Crosshairs.h"
 #include "craft/draw/Render.h"
 #include "craft/draw/Text.h"
+#include "craft/interfaces/DebugInterface.h"
 #include "craft/items/Item.h"
 #include "craft/physics/Physics.h"
 #include "craft/player/Player.h"
@@ -69,10 +70,15 @@ bool WorldInterface::on_key_press(Key key, int scancode, ButtonMods mods) {
     if (key == Key::Escape) {
         session->window()->defocus();
         return true;
+    } else if (key == player->keys.Debug) {
+        session->get_or_open_interface<DebugInterface>();
+        return true;
     } else if (key == player->keys.Chat) {
+        session->suppress_next_char();
         session->show_chat(/*cmd*/ false);
         return true;
     } else if (key == player->keys.Command) {
+        session->suppress_next_char();
         session->show_chat(/*cmd*/ true);
         return true;
     } else if (key == player->keys.Sign) {
@@ -88,6 +94,10 @@ bool WorldInterface::on_key_press(Key key, int scancode, ButtonMods mods) {
             on_left_click();
         }
         return true;
+    } else if (key == player->keys.Ortho) {
+        player->ortho = (player->ortho != 0) ? 0 : 64;
+    } else if (key == player->keys.Zoom) {
+        player->fov = (player->fov <= 15) ? 75 : player->fov - 30;
     } else if (key == player->keys.Fly) {
         player->flying = !player->flying;
         return true;
@@ -138,8 +148,6 @@ bool WorldInterface::held_keys(double dt) {
     int sx = 0;
     float m = dt * KEY_SENSITIVITY;
     State &state = player->state;
-    player->ortho = is_key_pressed(player->keys.Ortho) ? 64 : 0;
-    player->fov = is_key_pressed(player->keys.Zoom) ? 15 : 65;
     if (is_key_pressed(player->keys.Forward))
         sz--;
     if (is_key_pressed(player->keys.Backward))
@@ -157,20 +165,27 @@ bool WorldInterface::held_keys(double dt) {
     if (is_key_pressed(Key::Down))
         state.ry -= m;
     FVec3 vec = get_motion_vector(player->flying, sz, sx, state.rx, state.ry);
+
+    float accel = player->flying ? FLYING_SPEED*FLYING_SPEED : WALKING_SPEED*WALKING_SPEED;
+    float max_speed = player->flying ? FLYING_SPEED : WALKING_SPEED;
+    float current_speed = player->velocity.len();
+    if ((sx != 0 || sz != 0) && current_speed < max_speed) {
+        player->accel = vec * accel;
+    } else if (sx == 0 && sz == 0 && current_speed > 0) {
+        auto a = player->velocity / current_speed;
+        player->accel = a * -accel;
+    } else {
+        player->accel = {};
+    }
     if (is_key_pressed(player->keys.Jump)) {
         if (player->flying) {
-            vec.y = 1;
-        } else if (vec.y == 0) {
+            player->accel.y = max_speed;
+        } else if (player->velocity.y == 0) {
             player->accel.y = 8;
+        } else {
+            player->accel.y = 0;
         }
     }
-    float speed = player->flying ? FLYING_SPEED : WALKING_SPEED;
-    int estimate = roundf((vec * speed + player->accel.abs() * 2).len() * dt * 8);
-    int step = MAX(8, estimate);
-    float ut = dt / step;
-    vec *= ut * speed;
-    player->velocity = vec;
-    player->step = step;
     return true;
 }
 

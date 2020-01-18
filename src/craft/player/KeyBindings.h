@@ -7,6 +7,7 @@ struct KeyBindings {
     /// Chat
     Key Chat = Key::T;
     Key Command = Key::Slash;
+    Key Debug = Key::Apostrophe;
 
     Key Forward = Key::W;
     Key Backward = Key::S;

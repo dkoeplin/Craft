@@ -15,6 +15,8 @@
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define SIGN(x) (((x) > 0) - ((x) < 0))
 
+#define ABS_MIN(a, b) (ABS(a) < ABS(b)) ? a : b
+
 #if DEBUG
 #define LOG(...) printf(__VA_ARGS__)
 #else

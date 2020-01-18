@@ -1,6 +1,8 @@
 #ifndef CRAFT_SRC_CRAFT_SESSION_INTERFACE_H_
 #define CRAFT_SRC_CRAFT_SESSION_INTERFACE_H_
 
+#include <string>
+
 #include "craft/interfaces/Keys.h"
 
 struct Shader;
@@ -35,6 +37,7 @@ struct ButtonMods {
 struct Interface {
   public:
     virtual ~Interface() = default;
+    virtual std::string get_name() const = 0;
 
     virtual bool on_char(uint32_t c) { return false; }
     virtual bool on_key_press(Key key, int scancode, ButtonMods mods) { return false; }

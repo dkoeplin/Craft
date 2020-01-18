@@ -46,7 +46,7 @@ struct Session : public WorldSession {
     void run();
 
     /// Suppress the next on_char call (was used by on_key already)
-    void suppress_char() { suppress_next_char = true; }
+    void suppress_next_char() { suppress_next_char_ = true; }
 
     void set_draw_distance(int radius);
     void add_message(const char *text);
@@ -56,6 +56,26 @@ struct Session : public WorldSession {
     /// Window
     Window *window() { return window_.get(); }
     void close_interface(Interface *iface);
+
+    template <typename Iface>
+    Iface *get_interface() {
+        auto index = std::find_if(interfaces.begin(), interfaces.end(), [&](auto &i) {
+            return i->get_name() == Iface::name();
+        });
+        return (index != interfaces.end()) ? (Iface *)(index->get()) : nullptr;
+    }
+    template <typename Iface>
+    Iface *get_or_open_interface() {
+        if (auto *face = get_interface<Iface>()) {
+            return face;
+        }
+        else {
+            auto iface = std::make_unique<Iface>(this, world.get(), player);
+            auto *result = iface.get();
+            interfaces.push_back(std::move(iface));
+            return result;
+        }
+    }
 
     /// Multiplayer
     bool is_online() { return online; }
@@ -130,7 +150,7 @@ struct Session : public WorldSession {
     int server_port;
 
     /// Other State
-    bool suppress_next_char = false;
+    bool suppress_next_char_ = false;
     bool time_changed = false;
     double last_commit;
     double last_update;

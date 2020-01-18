@@ -5,6 +5,10 @@
 
 struct SignInterface : public Interface {
   public:
+    static std::string name() { return "Sign"; }
+    std::string get_name() const override { return name(); }
+
+
   private:
 };
 

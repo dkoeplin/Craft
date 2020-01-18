@@ -44,6 +44,7 @@ template <typename Index> struct Vec3 {
     Vec3<Index> operator+(const Vec3<Index> &rhs);
 
     Vec3<Index> operator/(int divisor) const;
+    Vec3<Index> operator/(float divisor) const;
     Vec3<Index> operator*(float scale) const;
 
     bool operator==(const Vec3<Index> &rhs) const { return x == rhs.x && y == rhs.y && z == rhs.z; }
@@ -67,6 +68,7 @@ template <typename Index> struct Vec3 {
     }
 
     float len() const;
+    void normalize();
 
     /// Return a self pointer of Vec type.
     Vec3<Index> &loc() { return *this; }

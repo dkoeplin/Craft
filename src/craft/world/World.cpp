@@ -77,16 +77,27 @@ void World::delete_all_players() { players.clear(); }
 
 void World::move_entities(double dt) {
     for (auto &player : players) {
-        float ut = dt / player->step;
-        for (int i = 0; i < player->step; i++) {
-            if (!player->flying) {
-                player->accel.y -= MAX(ut * 25, -250);
-            }
-            player->velocity += (player->accel * ut);
-            player->state += player->velocity;
+        int estimate = roundf((player->velocity + player->accel.abs() * 2).len() * dt * 8);
+        int step = MAX(8, estimate);
+        float t = dt / step;
 
+        for (int i = 0; i < step; i++) {
+            auto accel = player->accel;
+            accel.y -= 9.8;
+            if (!player->flying) {
+                FVec3 friction = {-player->velocity.x, 0, -player->velocity.z};
+                friction.normalize();
+                friction *= 16;
+                friction.x = ABS_MIN(-player->velocity.x, friction.x);
+                friction.z = ABS_MIN(-player->velocity.z, friction.z);
+                accel += friction;
+                accel.y -= 9.8;
+            }
+            player->velocity += accel * t;
+            player->state += player->velocity * t;
             if (collide(2, player->state)) {
-                player->velocity = {};
+                player->accel.y = 0;
+                player->velocity.y = 0;
             }
         }
         if (player->state.y < 0) {

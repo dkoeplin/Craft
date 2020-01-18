@@ -9,9 +9,10 @@ struct World;
 
 struct DebugInterface : public Interface {
   public:
-    DebugInterface(Session *session, World *world, Player *player);
+    static std::string name() { return "Debug"; }
+    std::string get_name() const override { return name(); }
 
-    bool on_key_press(Key key, int scancode, ButtonMods mods) override;
+    DebugInterface(Session *session, World *world, Player *player);
 
     bool tick(double dt) override;
     bool render(bool top) override;

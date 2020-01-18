@@ -69,8 +69,8 @@ void Session::terminate() {
 }
 
 void Session::on_char(unsigned int u) {
-    if (suppress_next_char) {
-        suppress_next_char = false;
+    if (suppress_next_char_) {
+        suppress_next_char_ = false;
     } else if (window_->in_focus()) {
         bool consumed = false;
         for (auto interface = interfaces.rbegin(); !consumed && interface != interfaces.rend(); ++interface) {
@@ -302,7 +302,7 @@ void Session::load_world() {
     }
 
     auto world_iface = std::make_unique<WorldInterface>(this, world.get(), player);
-    auto chat_iface = std::make_unique<ChatInterface>(this, world.get());
+    auto chat_iface = std::make_unique<ChatInterface>(this, world.get(), player);
     auto debug_iface = std::make_unique<DebugInterface>(this, world.get(), player);
     chat = chat_iface.get();
     interfaces.push_back(std::move(world_iface));
